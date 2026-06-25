@@ -1,6 +1,6 @@
 {
-  "version": 1782379739008,
-  "publishedAt": "2026-06-25T09:28:59.008Z",
+  "version": 1782382619819,
+  "publishedAt": "2026-06-25T10:16:59.819Z",
   "players": [
     {
       "id": "6e9519b3-3f6a-4890-a17a-fa26663ce7d3",
@@ -9,6 +9,26 @@
     {
       "id": "41433029-3123-4707-ae45-59299b65cec7",
       "name": "Larry"
+    },
+    {
+      "id": "7c93fe79-2ae9-4c94-a97c-8cb2f98ef619",
+      "name": "Christoph"
+    },
+    {
+      "id": "246a64f8-bec0-49e3-b080-5737d90a81e3",
+      "name": "Marie"
+    },
+    {
+      "id": "b590fd52-7831-43c2-a7d0-555cb8a79daa",
+      "name": "Dragan"
+    },
+    {
+      "id": "09d101b0-1971-4b28-bb8c-3544548feaf0",
+      "name": "Boris"
+    },
+    {
+      "id": "4c33375d-4a91-4b47-bf70-b1ec69467d74",
+      "name": "Adrian"
     }
   ],
   "matches": [],
