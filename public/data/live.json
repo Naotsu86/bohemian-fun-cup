@@ -1,10 +1,14 @@
 {
-  "version": 1782374577629,
-  "publishedAt": "2026-06-25T08:02:57.629Z",
+  "version": 1782379739008,
+  "publishedAt": "2026-06-25T09:28:59.008Z",
   "players": [
     {
       "id": "6e9519b3-3f6a-4890-a17a-fa26663ce7d3",
       "name": "Alex"
+    },
+    {
+      "id": "41433029-3123-4707-ae45-59299b65cec7",
+      "name": "Larry"
     }
   ],
   "matches": [],
