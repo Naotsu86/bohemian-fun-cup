@@ -7,7 +7,9 @@
           <h1>Bohemian Fun Cup</h1>
           <div class="sub">Beachvolleyball · Punktewertung pro Spieler</div>
         </div>
-        <div class="pill">lokal</div>
+        <button class="live-pill" @click="$emit('refresh-live')">
+          {{ liveLabel }}
+        </button>
       </div>
 
       <nav>
@@ -22,11 +24,11 @@
 
 <script setup>
 defineProps({
-  modelValue: {
+  modelValue: String,
+  liveLabel: {
     type: String,
-    required: true,
+    default: 'aktualisieren',
   },
 })
-
-defineEmits(['update:modelValue'])
+defineEmits(['update:modelValue', 'refresh-live'])
 </script>

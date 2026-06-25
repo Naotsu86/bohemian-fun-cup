@@ -1,30 +1,17 @@
 <template>
-  <AppHeader v-model="tab" />
+  <AppHeader v-model="tab" :live-label="liveLabel" @refresh-live="refreshLive" />
 
   <main class="wrap">
-    <Overview
-      v-if="tab === 'overview'"
-      :ranking="ranking"
-      :open-matches="openMatches"
-      :rules="state.rules"
-      :match-number="matchNumber"
-      :name-of="nameOf"
-    />
-
-    <Games
-      v-if="tab === 'games'"
-      :matches="state.matches"
-      :match-number="matchNumber"
-      :name-of="nameOf"
-    />
-
+    <Overview v-if="tab === 'overview'" :ranking="ranking" :open-matches="openMatches" :rules="state.rules" :match-number="matchNumber" :name-of="nameOf" />
+    <Games v-if="tab === 'games'" :matches="state.matches" :match-number="matchNumber" :name-of="nameOf" />
     <Ranking v-if="tab === 'ranking'" :ranking="ranking" />
-
     <Admin
       v-if="tab === 'admin'"
       :state="state"
       :admin-unlocked="adminUnlocked"
       :message="adminMessage"
+      :live-message="liveMessage"
+      :token-saved="tokenSaved"
       :match-number="matchNumber"
       :name-of="nameOf"
       @login="login"
@@ -36,37 +23,53 @@
       @export-json="exportJson"
       @import-json="importJson"
       @clear-all="clearAll"
+      @set-token="setToken"
+      @clear-token="clearToken"
+      @publish-live="publishLive"
     />
   </main>
 </template>
 
 <script setup>
-import { computed, reactive, ref, watch } from 'vue'
+import { computed, onMounted, onUnmounted, reactive, ref, watch } from 'vue'
 import AppHeader from './components/AppHeader.vue'
 import Overview from './views/Overview.vue'
 import Games from './views/Games.vue'
 import Ranking from './views/Ranking.vue'
 import Admin from './views/Admin.vue'
-import { ADMIN_SESSION_KEY, STORAGE_KEY, loadState, saveState } from './services/storage'
+import { ADMIN_SESSION_KEY, GITHUB_TOKEN_KEY, STORAGE_KEY, loadState, saveState } from './services/storage'
 import { buildRanking, getOpenMatches } from './services/ranking'
 import { createMatches, recalcForm } from './services/generator'
+import { createPublicLiveData, fetchLiveJson, publishLiveJson } from './services/githubLive'
 
 const tab = ref('overview')
 const adminUnlocked = ref(sessionStorage.getItem(ADMIN_SESSION_KEY) === '1')
 const adminMessage = ref('')
+const liveMessage = ref('')
+const liveLoading = ref(false)
+let timer = null
 
 const state = reactive(loadState())
 
-watch(
-  state,
-  () => {
-    saveState(state)
-  },
-  { deep: true },
-)
+watch(state, () => saveState(state), { deep: true })
 
 const ranking = computed(() => buildRanking(state.players, state.matches))
 const openMatches = computed(() => getOpenMatches(state.matches))
+const tokenSaved = computed(() => !!localStorage.getItem(GITHUB_TOKEN_KEY))
+const liveLabel = computed(() => {
+  if (liveLoading.value) return 'lädt...'
+  if (state.live.lastLoadedAt) return `Update ${new Date(state.live.lastLoadedAt).toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' })}`
+  return 'aktualisieren'
+})
+
+onMounted(() => {
+  refreshLive()
+  timer = setInterval(refreshLive, Number(state.settings.autoRefreshSeconds || 30) * 1000)
+})
+
+onUnmounted(() => {
+  if (timer) clearInterval(timer)
+})
 
 function login() {
   const pin = prompt('Admin-PIN eingeben')
@@ -94,15 +97,8 @@ function matchNumber(match) {
 
 function handleCreateMatches() {
   adminMessage.value = ''
-
   try {
-    const created = createMatches({
-      players: state.players,
-      matches: state.matches,
-      mode: state.settings.mode,
-      count: state.settings.count,
-    })
-
+    const created = createMatches({ players: state.players, matches: state.matches, mode: state.settings.mode, count: state.settings.count })
     state.matches.push(...created)
     adminMessage.value = `${created.length} Spiel${created.length === 1 ? '' : 'e'} erstellt.`
   } catch (error) {
@@ -124,7 +120,6 @@ function deleteMatch(id) {
 function setScore({ id, side, value }) {
   const match = state.matches.find((m) => m.id === id)
   if (!match) return
-
   match[side] = value
   recalcForm(state.players, state.matches, state.settings)
 }
@@ -141,7 +136,6 @@ function exportJson() {
 function importJson(event) {
   const file = event.target.files?.[0]
   if (!file) return
-
   const reader = new FileReader()
   reader.onload = () => {
     try {
@@ -153,7 +147,6 @@ function importJson(event) {
       alert('Die JSON-Datei konnte nicht gelesen werden.')
     }
   }
-
   reader.readAsText(file)
 }
 
@@ -161,5 +154,56 @@ function clearAll() {
   if (!confirm('Wirklich alles löschen?')) return
   localStorage.removeItem(STORAGE_KEY)
   location.reload()
+}
+
+function setToken() {
+  const token = prompt('GitHub Fine-grained Token eingeben')
+  if (!token) return
+  localStorage.setItem(GITHUB_TOKEN_KEY, token.trim())
+  liveMessage.value = 'Token wurde lokal auf diesem Gerät gespeichert.'
+}
+
+function clearToken() {
+  localStorage.removeItem(GITHUB_TOKEN_KEY)
+  liveMessage.value = 'Token wurde gelöscht.'
+}
+
+async function publishLive() {
+  liveMessage.value = 'Veröffentliche Live-Daten...'
+  try {
+    const token = localStorage.getItem(GITHUB_TOKEN_KEY)
+    const liveData = createPublicLiveData(state)
+    await publishLiveJson({
+      owner: state.settings.githubOwner,
+      repo: state.settings.githubRepo,
+      branch: state.settings.githubBranch,
+      path: state.settings.livePath,
+      token,
+      liveData,
+    })
+    state.live.lastPublishedAt = liveData.publishedAt
+    liveMessage.value = 'Live-Daten wurden an GitHub übertragen. Es kann kurz dauern, bis GitHub Pages aktualisiert ist.'
+  } catch (error) {
+    liveMessage.value = error.message || 'Veröffentlichen fehlgeschlagen.'
+  }
+}
+
+async function refreshLive() {
+  if (adminUnlocked.value) return
+  liveLoading.value = true
+  try {
+    const live = await fetchLiveJson()
+    if (!live || !Array.isArray(live.players) || !Array.isArray(live.matches)) return
+
+    state.players = live.players.map((p) => ({ id: p.id, name: p.name, rating: 1, form: 0 }))
+    state.matches = live.matches
+    state.rules = live.rules || state.rules
+    state.live.lastLoadedAt = new Date().toISOString()
+    state.live.lastPublishedAt = live.publishedAt || null
+  } catch {
+    // stiller Fehler, damit die App offline/local weiter funktioniert
+  } finally {
+    liveLoading.value = false
+  }
 }
 </script>

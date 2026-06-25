@@ -21,9 +21,7 @@ function buildHistory(matches) {
   const against = new Map()
 
   for (const match of matches) {
-    const teams = [match.teamA, match.teamB]
-
-    for (const team of teams) {
+    for (const team of [match.teamA, match.teamB]) {
       for (let i = 0; i < team.length; i++) {
         for (let j = i + 1; j < team.length; j++) {
           const key = pairKey(team[i], team[j])
@@ -49,25 +47,21 @@ function teamStrength(team) {
 
 function teamPairPenalty(team, together) {
   let penalty = 0
-
   for (let i = 0; i < team.length; i++) {
     for (let j = i + 1; j < team.length; j++) {
       penalty += together.get(pairKey(team[i].id, team[j].id)) || 0
     }
   }
-
   return penalty
 }
 
 function opponentPenalty(teamA, teamB, against) {
   let penalty = 0
-
   for (const a of teamA) {
     for (const b of teamB) {
       penalty += against.get(pairKey(a.id, b.id)) || 0
     }
   }
-
   return penalty
 }
 
@@ -82,13 +76,8 @@ export function createMatches({ players, matches, mode, count }) {
   const needed = aSize + bSize
   const amount = Math.max(1, Number(count || 1))
 
-  if (!aSize || !bSize) {
-    throw new Error('Der Spielmodus ist ungültig.')
-  }
-
-  if (players.length < needed) {
-    throw new Error(`Für ${mode} brauchst du mindestens ${needed} Spieler. Aktuell sind es ${players.length}.`)
-  }
+  if (!aSize || !bSize) throw new Error('Der Spielmodus ist ungültig.')
+  if (players.length < needed) throw new Error(`Für ${mode} brauchst du mindestens ${needed} Spieler. Aktuell sind es ${players.length}.`)
 
   const created = []
   const workingMatches = [...matches]
@@ -96,7 +85,6 @@ export function createMatches({ players, matches, mode, count }) {
 
   for (let round = 0; round < amount; round++) {
     const pool = selectPool(players, workingMatches, needed)
-
     let best = null
 
     for (let i = 0; i < 1500; i++) {
@@ -109,12 +97,9 @@ export function createMatches({ players, matches, mode, count }) {
       const gameSpread = Math.max(...games) - Math.min(...games)
       const togetherPenalty = teamPairPenalty(teamA, history.together) + teamPairPenalty(teamB, history.together)
       const againstPenalty = opponentPenalty(teamA, teamB, history.against)
-
       const score = strengthDiff * 100 + gameSpread * 60 + togetherPenalty * 18 + againstPenalty * 6 + Math.random()
 
-      if (!best || score < best.score) {
-        best = { teamA, teamB, score }
-      }
+      if (!best || score < best.score) best = { teamA, teamB, score }
     }
 
     const match = {
@@ -129,27 +114,6 @@ export function createMatches({ players, matches, mode, count }) {
 
     created.push(match)
     workingMatches.push(match)
-
-    for (let i = 0; i < match.teamA.length; i++) {
-      for (let j = i + 1; j < match.teamA.length; j++) {
-        const key = pairKey(match.teamA[i], match.teamA[j])
-        history.together.set(key, (history.together.get(key) || 0) + 1)
-      }
-    }
-
-    for (let i = 0; i < match.teamB.length; i++) {
-      for (let j = i + 1; j < match.teamB.length; j++) {
-        const key = pairKey(match.teamB[i], match.teamB[j])
-        history.together.set(key, (history.together.get(key) || 0) + 1)
-      }
-    }
-
-    for (const a of match.teamA) {
-      for (const b of match.teamB) {
-        const key = pairKey(a, b)
-        history.against.set(key, (history.against.get(key) || 0) + 1)
-      }
-    }
   }
 
   return created

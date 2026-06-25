@@ -2,14 +2,7 @@
   <div class="table-wrap">
     <table>
       <thead>
-        <tr>
-          <th>Platz</th>
-          <th>Spieler</th>
-          <th>Punkte</th>
-          <th>Spiele</th>
-          <th>Siege</th>
-          <th>Ø</th>
-        </tr>
+        <tr><th>Platz</th><th>Spieler</th><th>Punkte</th><th>Spiele</th><th>Siege</th><th>Ø</th></tr>
       </thead>
       <tbody>
         <tr v-for="(row, index) in rows" :key="row.id">
@@ -26,13 +19,7 @@
 </template>
 
 <script setup>
-defineProps({
-  rows: {
-    type: Array,
-    required: true,
-  },
-})
-
+defineProps({ rows: { type: Array, required: true } })
 function medal(index) {
   if (index === 0) return '🥇'
   if (index === 1) return '🥈'

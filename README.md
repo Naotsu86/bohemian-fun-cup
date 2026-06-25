@@ -1,32 +1,16 @@
-# Bohemian Fun Cup
+# Bohemian Fun Cup V3
 
-Lokale PWA für ein internes Beachvolleyball-Turnier.
+Lokale PWA mit GitHub-Live-Veröffentlichung.
 
-## Funktionen
+## Wichtig
 
-- Spielerverwaltung mit interner Stärke 1 bis 12
-- Spielmodi 2v2, 2v3, 3v3, 3v4 und 4v4
-- Fairer Teamgenerator mit Berücksichtigung von:
-  - Teamstärke
-  - gleicher Spielanzahl
-  - möglichst wenigen Wiederholungen bei Mitspielern
-  - möglichst wenigen Wiederholungen bei Gegnern
-- Ergebnisse nur im Adminbereich
-- Spieleransicht nur lesend
-- Rangliste nach Punkten, Siegen und Punktdifferenz
-- JSON Export / Import
-- PWA über GitHub Pages
+- Standard Admin-PIN: `2026`
+- Repository vorbereitet für: `bohemian-fun-cup`
+- Live-Datei: `public/data/live.json`
 
-## Admin
+## Live-Modus
 
-Standard-PIN: `2026`
+Der Admin speichert einen GitHub Fine-grained Token lokal auf seinem Handy.
+Dann kann er im Adminbereich per Button `Live veröffentlichen` die Datei `public/data/live.json` im Repository aktualisieren.
 
-## GitHub Pages
-
-Repository-Name ist vorbereitet für:
-
-```txt
-bohemian-fun-cup
-```
-
-Falls dein Repository anders heißt, bitte in `vite.config.js` `base` und `start_url` anpassen.
+Spieler laden diese Datei automatisch ca. alle 30 Sekunden.

@@ -1,5 +1,6 @@
-export const STORAGE_KEY = 'bohemian-fun-cup-v2'
+export const STORAGE_KEY = 'bohemian-fun-cup-v3'
 export const ADMIN_SESSION_KEY = 'bfc-admin-unlocked'
+export const GITHUB_TOKEN_KEY = 'bfc-github-token'
 
 export function uuid() {
   return crypto.randomUUID ? crypto.randomUUID() : `${Date.now()}-${Math.random().toString(36).slice(2)}`
@@ -17,7 +18,17 @@ export function defaultState() {
       adminPin: '2026',
       winForm: 0.01,
       lossForm: -0.01,
+      githubOwner: 'Naotsu86',
+      githubRepo: 'bohemian-fun-cup',
+      githubBranch: 'main',
+      livePath: 'public/data/live.json',
+      autoRefreshSeconds: 30
     },
+    live: {
+      lastLoadedAt: null,
+      lastPublishedAt: null,
+      message: ''
+    }
   }
 }
 
@@ -34,10 +45,8 @@ export function loadState() {
       ...parsed,
       players: Array.isArray(parsed.players) ? parsed.players : [],
       matches: Array.isArray(parsed.matches) ? parsed.matches : [],
-      settings: {
-        ...base.settings,
-        ...(parsed.settings || {}),
-      },
+      settings: { ...base.settings, ...(parsed.settings || {}) },
+      live: { ...base.live, ...(parsed.live || {}) }
     }
   } catch {
     return defaultState()
