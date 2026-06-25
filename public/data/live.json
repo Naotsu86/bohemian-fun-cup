@@ -1,7 +1,12 @@
 {
-  "version": 1782374495728,
-  "publishedAt": "2026-06-25T08:01:35.728Z",
-  "players": [],
+  "version": 1782374541823,
+  "publishedAt": "2026-06-25T08:02:21.823Z",
+  "players": [
+    {
+      "id": "6e9519b3-3f6a-4890-a17a-fa26663ce7d3",
+      "name": "Alex"
+    }
+  ],
   "matches": [],
   "rules": "Noch keine Live-Daten veröffentlicht."
 }
