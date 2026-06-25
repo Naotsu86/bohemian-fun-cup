@@ -1,209 +1,44 @@
 <template>
-  <AppHeader v-model="tab" :live-label="liveLabel" @refresh-live="refreshLive" />
-
+  <AppHeader v-model="tab" :status-text="statusText" @refresh="loadData" />
   <main class="wrap">
-    <Overview v-if="tab === 'overview'" :ranking="ranking" :open-matches="openMatches" :rules="state.rules" :match-number="matchNumber" :name-of="nameOf" />
-    <Games v-if="tab === 'games'" :matches="state.matches" :match-number="matchNumber" :name-of="nameOf" />
-    <Ranking v-if="tab === 'ranking'" :ranking="ranking" />
-    <Admin
-      v-if="tab === 'admin'"
-      :state="state"
-      :admin-unlocked="adminUnlocked"
-      :message="adminMessage"
-      :live-message="liveMessage"
-      :token-saved="tokenSaved"
-      :match-number="matchNumber"
-      :name-of="nameOf"
-      @login="login"
-      @logout="logout"
-      @create-matches="handleCreateMatches"
-      @delete-player="deletePlayer"
-      @delete-match="deleteMatch"
-      @score="setScore"
-      @export-json="exportJson"
-      @import-json="importJson"
-      @clear-all="clearAll"
-      @set-token="setToken"
-      @clear-token="clearToken"
-      @publish-live="publishLive"
-    />
+    <p v-if="errorMessage" class="error-box">{{ errorMessage }}</p>
+    <Overview v-if="tab==='overview'" :ranking="ranking" :open-matches="openMatches" :rules="rules" :match-number="matchNumber" :name-of="nameOf" />
+    <Games v-if="tab==='games'" :matches="matches" :match-number="matchNumber" :name-of="nameOf" />
+    <Ranking v-if="tab==='ranking'" :ranking="ranking" />
+    <Admin v-if="tab==='admin'" :admin-unlocked="adminUnlocked" :players="players" :matches="matches" :rules="rules" :message="adminMessage" :match-number="matchNumber" :name-of="nameOf" @login="login" @logout="logout" @add-player="handleAddPlayer" @update-player="handleUpdatePlayer" @delete-player="handleDeletePlayer" @create-match="handleCreateMatch" @delete-match="handleDeleteMatch" @score="handleScore" @update-rules="handleUpdateRules" />
   </main>
 </template>
-
 <script setup>
-import { computed, onMounted, onUnmounted, reactive, ref, watch } from 'vue'
+import { computed, onMounted, onUnmounted, ref } from 'vue'
+import { supabase } from './api/supabase'
 import AppHeader from './components/AppHeader.vue'
 import Overview from './views/Overview.vue'
 import Games from './views/Games.vue'
 import Ranking from './views/Ranking.vue'
 import Admin from './views/Admin.vue'
-import { ADMIN_SESSION_KEY, GITHUB_TOKEN_KEY, STORAGE_KEY, loadState, saveState } from './services/storage'
 import { buildRanking, getOpenMatches } from './services/ranking'
-import { createMatches, recalcForm } from './services/generator'
-import { createPublicLiveData, fetchLiveJson, publishLiveJson } from './services/githubLive'
-
-const tab = ref('overview')
-const adminUnlocked = ref(sessionStorage.getItem(ADMIN_SESSION_KEY) === '1')
-const adminMessage = ref('')
-const liveMessage = ref('')
-const liveLoading = ref(false)
-let timer = null
-
-const state = reactive(loadState())
-
-watch(state, () => saveState(state), { deep: true })
-
-const ranking = computed(() => buildRanking(state.players, state.matches))
-const openMatches = computed(() => getOpenMatches(state.matches))
-const tokenSaved = computed(() => !!localStorage.getItem(GITHUB_TOKEN_KEY))
-const liveLabel = computed(() => {
-  if (liveLoading.value) return 'lädt...'
-  if (state.live.lastLoadedAt) return `Update ${new Date(state.live.lastLoadedAt).toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' })}`
-  return 'aktualisieren'
-})
-
-onMounted(() => {
-  refreshLive()
-  timer = setInterval(refreshLive, Number(state.settings.autoRefreshSeconds || 30) * 1000)
-})
-
-onUnmounted(() => {
-  if (timer) clearInterval(timer)
-})
-
-function login() {
-  const pin = prompt('Admin-PIN eingeben')
-  if (pin === String(state.settings.adminPin || '2026')) {
-    adminUnlocked.value = true
-    sessionStorage.setItem(ADMIN_SESSION_KEY, '1')
-  } else {
-    alert('PIN ist falsch.')
-  }
-}
-
-function logout() {
-  adminUnlocked.value = false
-  sessionStorage.removeItem(ADMIN_SESSION_KEY)
-  tab.value = 'overview'
-}
-
-function nameOf(id) {
-  return state.players.find((p) => p.id === id)?.name || '?'
-}
-
-function matchNumber(match) {
-  return state.matches.findIndex((m) => m.id === match.id) + 1
-}
-
-function handleCreateMatches() {
-  adminMessage.value = ''
-  try {
-    const created = createMatches({ players: state.players, matches: state.matches, mode: state.settings.mode, count: state.settings.count })
-    state.matches.push(...created)
-    adminMessage.value = `${created.length} Spiel${created.length === 1 ? '' : 'e'} erstellt.`
-  } catch (error) {
-    adminMessage.value = error.message || 'Die Spiele konnten nicht erstellt werden.'
-  }
-}
-
-function deletePlayer(id) {
-  state.players = state.players.filter((p) => p.id !== id)
-  state.matches = state.matches.filter((m) => ![...m.teamA, ...m.teamB].includes(id))
-  recalcForm(state.players, state.matches, state.settings)
-}
-
-function deleteMatch(id) {
-  state.matches = state.matches.filter((m) => m.id !== id)
-  recalcForm(state.players, state.matches, state.settings)
-}
-
-function setScore({ id, side, value }) {
-  const match = state.matches.find((m) => m.id === id)
-  if (!match) return
-  match[side] = value
-  recalcForm(state.players, state.matches, state.settings)
-}
-
-function exportJson() {
-  const blob = new Blob([JSON.stringify(state, null, 2)], { type: 'application/json' })
-  const link = document.createElement('a')
-  link.href = URL.createObjectURL(blob)
-  link.download = 'bohemian-fun-cup.json'
-  link.click()
-  URL.revokeObjectURL(link.href)
-}
-
-function importJson(event) {
-  const file = event.target.files?.[0]
-  if (!file) return
-  const reader = new FileReader()
-  reader.onload = () => {
-    try {
-      const imported = JSON.parse(reader.result)
-      Object.assign(state, imported)
-      recalcForm(state.players, state.matches, state.settings)
-      adminMessage.value = 'JSON wurde importiert.'
-    } catch {
-      alert('Die JSON-Datei konnte nicht gelesen werden.')
-    }
-  }
-  reader.readAsText(file)
-}
-
-function clearAll() {
-  if (!confirm('Wirklich alles löschen?')) return
-  localStorage.removeItem(STORAGE_KEY)
-  location.reload()
-}
-
-function setToken() {
-  const token = prompt('GitHub Fine-grained Token eingeben')
-  if (!token) return
-  localStorage.setItem(GITHUB_TOKEN_KEY, token.trim())
-  liveMessage.value = 'Token wurde lokal auf diesem Gerät gespeichert.'
-}
-
-function clearToken() {
-  localStorage.removeItem(GITHUB_TOKEN_KEY)
-  liveMessage.value = 'Token wurde gelöscht.'
-}
-
-async function publishLive() {
-  liveMessage.value = 'Veröffentliche Live-Daten...'
-  try {
-    const token = localStorage.getItem(GITHUB_TOKEN_KEY)
-    const liveData = createPublicLiveData(state)
-    await publishLiveJson({
-      owner: state.settings.githubOwner,
-      repo: state.settings.githubRepo,
-      branch: state.settings.githubBranch,
-      path: state.settings.livePath,
-      token,
-      liveData,
-    })
-    state.live.lastPublishedAt = liveData.publishedAt
-    liveMessage.value = 'Live-Daten wurden an GitHub übertragen. Es kann kurz dauern, bis GitHub Pages aktualisiert ist.'
-  } catch (error) {
-    liveMessage.value = error.message || 'Veröffentlichen fehlgeschlagen.'
-  }
-}
-
-async function refreshLive() {
-  if (adminUnlocked.value) return
-  liveLoading.value = true
-  try {
-    const live = await fetchLiveJson()
-    if (!live || !Array.isArray(live.players) || !Array.isArray(live.matches)) return
-
-    state.players = live.players.map((p) => ({ id: p.id, name: p.name, rating: 1, form: 0 }))
-    state.matches = live.matches
-    state.rules = live.rules || state.rules
-    state.live.lastLoadedAt = new Date().toISOString()
-    state.live.lastPublishedAt = live.publishedAt || null
-  } catch {
-    // stiller Fehler, damit die App offline/local weiter funktioniert
-  } finally {
-    liveLoading.value = false
-  }
-}
+import { createNextMatch } from './services/generator'
+import { addPlayer, deleteMatch, deletePlayer, insertMatch, loadAll, updateForms, updateMatch, updatePlayer, updateSettings } from './services/supabaseData'
+const tab=ref('overview'), adminUnlocked=ref(sessionStorage.getItem('bfc-admin')==='1'), players=ref([]), matches=ref([]), settings=ref({}), loading=ref(false), errorMessage=ref(''), adminMessage=ref('')
+let channel=null, timer=null
+const ranking=computed(()=>buildRanking(players.value,matches.value))
+const openMatches=computed(()=>getOpenMatches(matches.value))
+const rules=computed(()=>settings.value.rules || 'Noch keine Regeln eingetragen.')
+const statusText=computed(()=>loading.value?'lädt...':'live')
+onMounted(async()=>{await loadData(); subscribeRealtime(); timer=setInterval(loadData,5000)})
+onUnmounted(()=>{if(channel)supabase.removeChannel(channel); if(timer)clearInterval(timer)})
+async function run(action){errorMessage.value='';try{await action()}catch(e){errorMessage.value=e.message||'Es ist ein Fehler aufgetreten.'}}
+async function loadData(){loading.value=true;try{const d=await loadAll();players.value=d.players;matches.value=d.matches;settings.value=d.settings}catch(e){errorMessage.value=e.message||'Daten konnten nicht geladen werden.'}finally{loading.value=false}}
+function subscribeRealtime(){channel=supabase.channel('bohemian-fun-cup-live').on('postgres_changes',{event:'*',schema:'public',table:'players'},loadData).on('postgres_changes',{event:'*',schema:'public',table:'matches'},loadData).on('postgres_changes',{event:'*',schema:'public',table:'settings'},loadData).subscribe()}
+function login(){const pin=prompt('Admin-PIN eingeben'); if(pin===String(settings.value.adminPin||'2026')){adminUnlocked.value=true;sessionStorage.setItem('bfc-admin','1')}else alert('PIN ist falsch.')}
+function logout(){adminUnlocked.value=false;sessionStorage.removeItem('bfc-admin');tab.value='overview'}
+function nameOf(id){return players.value.find(p=>p.id===id)?.name||'?'}
+function matchNumber(match){return matches.value.findIndex(m=>m.id===match.id)+1}
+async function handleAddPlayer(payload){await run(async()=>{await addPlayer(payload); await loadData()})}
+async function handleUpdatePlayer(id,patch){await run(async()=>{await updatePlayer(id,patch); await loadData()})}
+async function handleDeletePlayer(id){if(!confirm('Spieler wirklich löschen? Alte Spiele mit diesem Spieler werden danach unvollständig angezeigt. Besser ist meistens: Spieler auf inaktiv setzen.'))return; await run(async()=>{await deletePlayer(id); await loadData()})}
+async function handleCreateMatch(mode){await run(async()=>{const match=createNextMatch({players:players.value,matches:matches.value,mode}); await insertMatch(match); adminMessage.value='Nächstes Spiel wurde erzeugt.'; await loadData()})}
+async function handleDeleteMatch(id){await run(async()=>{await deleteMatch(id); await loadData(); await updateForms(players.value,matches.value); await loadData()})}
+async function handleScore({id,side,value}){await run(async()=>{await updateMatch(id,{[side]:value}); await loadData(); await updateForms(players.value,matches.value); await loadData()})}
+async function handleUpdateRules(rules){await run(async()=>{await updateSettings({...settings.value,rules}); await loadData()})}
 </script>
