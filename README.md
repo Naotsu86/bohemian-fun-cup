@@ -1,8 +1,5 @@
-# Bohemian Fun Cup - Supabase Version
+# Bohemian Fun Cup - Supabase Clean
 
-Live-PWA für ein internes Beachvolleyball-Turnier.
+Diese Version enthält keine GitHub-Live-Logik mehr. GitHub Pages hostet nur die App, Supabase speichert die Live-Daten.
 
-Vor dem Hochladen bitte in Supabase den Inhalt aus `supabase-update.sql` ausführen.
-
-Prinzip: GitHub Pages hostet die App, Supabase speichert Spieler, Spiele und Ergebnisse live.
-Es wird bewusst immer nur das nächste Spiel erzeugt, damit aktuelle Ergebnisse, Turnierform und aktive Spieler berücksichtigt werden.
+Vor dem Hochladen einmal `supabase-update.sql` in Supabase ausführen.
