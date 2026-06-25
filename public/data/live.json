@@ -1,6 +1,6 @@
 {
-  "version": 1782382619819,
-  "publishedAt": "2026-06-25T10:16:59.819Z",
+  "version": 1782386975836,
+  "publishedAt": "2026-06-25T11:29:35.836Z",
   "players": [
     {
       "id": "6e9519b3-3f6a-4890-a17a-fa26663ce7d3",
@@ -31,6 +31,25 @@
       "name": "Adrian"
     }
   ],
-  "matches": [],
+  "matches": [
+    {
+      "id": "0ebda883-895d-4559-86ae-1177a7ea3db8",
+      "mode": "3v4",
+      "teamA": [
+        "6e9519b3-3f6a-4890-a17a-fa26663ce7d3",
+        "b590fd52-7831-43c2-a7d0-555cb8a79daa",
+        "4c33375d-4a91-4b47-bf70-b1ec69467d74"
+      ],
+      "teamB": [
+        "7c93fe79-2ae9-4c94-a97c-8cb2f98ef619",
+        "246a64f8-bec0-49e3-b080-5737d90a81e3",
+        "41433029-3123-4707-ae45-59299b65cec7",
+        "09d101b0-1971-4b28-bb8c-3544548feaf0"
+      ],
+      "scoreA": "",
+      "scoreB": "",
+      "createdAt": "2026-06-25T11:28:12.278Z"
+    }
+  ],
   "rules": "Noch keine Live-Daten veröffentlicht."
 }
