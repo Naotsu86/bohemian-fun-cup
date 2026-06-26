@@ -11,30 +11,28 @@
         {{ statusText }}
       </button>
 
-      <div class="pixel-wave wave-a"></div>
-      <div class="pixel-wave wave-b"></div>
       <div class="floating-ball">🏐</div>
     </div>
   </header>
 
   <nav class="pixel-bottom-nav" aria-label="Hauptnavigation">
     <button class="pixel-tab" :class="{ active: modelValue === 'overview' }" @click="$emit('update:modelValue','overview')">
-      <span class="nav-icon">🏠</span>
+      <img class="nav-icon-img" :src="icons.home" alt="" />
       <span>Übersicht</span>
     </button>
 
     <button class="pixel-tab" :class="{ active: modelValue === 'games' }" @click="$emit('update:modelValue','games')">
-      <span class="nav-icon">🏐</span>
+      <img class="nav-icon-img" :src="icons.games" alt="" />
       <span>Spiele</span>
     </button>
 
     <button class="pixel-tab" :class="{ active: modelValue === 'ranking' }" @click="$emit('update:modelValue','ranking')">
-      <span class="nav-icon">🏆</span>
+      <img class="nav-icon-img" :src="icons.ranking" alt="" />
       <span>Rangliste</span>
     </button>
 
     <button class="pixel-tab" :class="{ active: modelValue === 'admin' }" @click="$emit('update:modelValue','admin')">
-      <span class="nav-icon">🔧</span>
+      <img class="nav-icon-img" :src="icons.admin" alt="" />
       <span>Admin</span>
     </button>
   </nav>
@@ -44,6 +42,14 @@
 defineProps({ modelValue: String, statusText: String })
 defineEmits(['update:modelValue','refresh'])
 
-const desktopHeader = `${import.meta.env.BASE_URL}fun-cup-header-desktop.png`
-const mobileHeader = `${import.meta.env.BASE_URL}fun-cup-header-mobile.png`
+const base = import.meta.env.BASE_URL
+const desktopHeader = `${base}fun-cup-header-desktop.png`
+const mobileHeader = `${base}fun-cup-header-mobile.png`
+
+const icons = {
+  home: `${base}nav-icons/home.png`,
+  games: `${base}nav-icons/games.png`,
+  ranking: `${base}nav-icons/ranking.png`,
+  admin: `${base}nav-icons/admin.png`,
+}
 </script>

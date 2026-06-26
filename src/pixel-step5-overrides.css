@@ -1,0 +1,32 @@
+/* Diese Regeln unten an src/style.css anhängen. */
+
+/* Weiße bewegte Linien im Banner ausblenden */
+.pixel-wave,
+.wave-a,
+.wave-b {
+  display: none !important;
+}
+
+/* PNG-Pixelicons in der Bottom-Navigation */
+.nav-icon {
+  display: none;
+}
+
+.nav-icon-img {
+  width: 24px;
+  height: 24px;
+  object-fit: contain;
+  image-rendering: pixelated;
+  filter: drop-shadow(1px 1px 0 rgba(0,0,0,.25));
+}
+
+.pixel-tab.active .nav-icon-img {
+  transform: translateY(-1px);
+}
+
+@media(max-width:760px){
+  .nav-icon-img {
+    width: 23px;
+    height: 23px;
+  }
+}
