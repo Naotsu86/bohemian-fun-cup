@@ -43,6 +43,7 @@ defineProps({ modelValue: String, statusText: String })
 defineEmits(['update:modelValue','refresh'])
 
 const base = import.meta.env.BASE_URL
+
 const desktopHeader = `${base}fun-cup-header-desktop.png`
 const mobileHeader = `${base}fun-cup-header-mobile.png`
 

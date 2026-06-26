@@ -100,25 +100,10 @@ button,input,select,textarea{font:inherit}
   box-shadow:0 0 0 2px rgba(239,68,68,.18);
 }
 
-.pixel-wave{
-  position:absolute;
-  left:0;
-  right:0;
-  height:3px;
-  background:repeating-linear-gradient(90deg,rgba(255,255,255,.0) 0 16px,rgba(255,255,255,.85) 16px 28px,rgba(255,255,255,.0) 28px 44px);
-  pointer-events:none;
-  opacity:.45;
-}
-
-.wave-a{
-  top:58%;
-  animation:waveMove 7s linear infinite;
-}
-
+.pixel-wave,
+.wave-a,
 .wave-b{
-  top:64%;
-  opacity:.32;
-  animation:waveMove 11s linear infinite reverse;
+  display:none !important;
 }
 
 .floating-ball{
@@ -134,11 +119,6 @@ button,input,select,textarea{font:inherit}
 @keyframes livePulse{
   0%,100%{transform:translateY(0)}
   50%{transform:translateY(-1px)}
-}
-
-@keyframes waveMove{
-  from{background-position-x:0}
-  to{background-position-x:88px}
 }
 
 @keyframes ballBob{
@@ -189,8 +169,19 @@ button,input,select,textarea{font:inherit}
 }
 
 .nav-icon{
-  font-size:19px;
-  line-height:1;
+  display:none;
+}
+
+.nav-icon-img{
+  width:25px;
+  height:25px;
+  object-fit:contain;
+  image-rendering:pixelated;
+  filter:drop-shadow(1px 1px 0 rgba(0,0,0,.35));
+}
+
+.pixel-tab.active .nav-icon-img{
+  transform:translateY(-1px) scale(1.04);
 }
 
 .card{
@@ -537,9 +528,6 @@ th{
     object-position:center;
   }
 
-  .wave-a{top:55%}
-  .wave-b{top:61%}
-
   .floating-ball{
     right:12%;
     bottom:14px;
@@ -566,7 +554,10 @@ th{
     padding:6px 3px;
   }
 
-  .nav-icon{font-size:18px}
+  .nav-icon-img{
+    width:24px;
+    height:24px;
+  }
 
   .card{
     padding:12px;
