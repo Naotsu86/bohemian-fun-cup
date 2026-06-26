@@ -1,7 +1,7 @@
 <template>
   <header class="app-header">
     <div class="wrap header-wrap">
-      <img class="header-logo" src="/bohemian-fun-cup/fun-cup-header.png" alt="Bohemian Fun Cup Beachvolleyball" />
+    <img class="header-logo" :src="headerImage" alt="Bohemian Fun Cup Beachvolleyball" />
       <button class="live-pill" @click="$emit('refresh')">{{ statusText }}</button>
     </div>
   </header>
@@ -24,4 +24,6 @@
 <script setup>
 defineProps({ modelValue: String, statusText: String })
 defineEmits(['update:modelValue','refresh'])
+
+const headerImage = `${import.meta.env.BASE_URL}fun-cup-header.png`
 </script>
