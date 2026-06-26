@@ -1,11 +1,19 @@
 <template>
   <header class="pixel-header">
-    <div class="wrap header-wrap">
-      <img class="header-logo" :src="headerImage" alt="Bohemian Fun Cup Beachvolleyball" />
+    <div class="header-stage">
+      <picture>
+        <source media="(max-width: 760px)" :srcset="mobileHeader" />
+        <img class="header-logo" :src="desktopHeader" alt="Bohemian Fun Cup Beachvolleyball" />
+      </picture>
+
       <button class="live-badge" @click="$emit('refresh')">
         <span class="live-dot"></span>
         {{ statusText }}
       </button>
+
+      <div class="pixel-wave wave-a"></div>
+      <div class="pixel-wave wave-b"></div>
+      <div class="floating-ball">🏐</div>
     </div>
   </header>
 
@@ -36,5 +44,6 @@
 defineProps({ modelValue: String, statusText: String })
 defineEmits(['update:modelValue','refresh'])
 
-const headerImage = `${import.meta.env.BASE_URL}fun-cup-header.png`
+const desktopHeader = `${import.meta.env.BASE_URL}fun-cup-header-desktop.png`
+const mobileHeader = `${import.meta.env.BASE_URL}fun-cup-header-mobile.png`
 </script>
