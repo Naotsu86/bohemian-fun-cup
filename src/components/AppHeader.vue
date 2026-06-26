@@ -11,7 +11,7 @@
 
   <nav class="pixel-bottom-nav" aria-label="Hauptnavigation">
     <button class="pixel-tab" :class="{ active: modelValue === 'overview' }" @click="$emit('update:modelValue','overview')">
-      <span class="nav-icon">⌂</span>
+      <span class="nav-icon">🏠</span>
       <span>Übersicht</span>
     </button>
 
