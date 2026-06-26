@@ -1,5 +1,3 @@
-# Bohemian Fun Cup - Supabase Clean
+# Bohemian Fun Cup - Modern UI
 
-Diese Version enthält keine GitHub-Live-Logik mehr. GitHub Pages hostet nur die App, Supabase speichert die Live-Daten.
-
-Vor dem Hochladen einmal `supabase-update.sql` in Supabase ausführen.
+Modernisierte Supabase-Version mit Banner-Header, Bottom Navigation, Podium-Karten und Supabase Auth.

@@ -8,32 +8,20 @@
 
   <nav class="bottom-nav" aria-label="Hauptnavigation">
     <button class="bottom-tab" :class="{ active: modelValue === 'overview' }" @click="$emit('update:modelValue','overview')">
-      <span class="nav-icon">⌂</span>
-      <span>Übersicht</span>
+      <span class="nav-icon">⌂</span><span>Übersicht</span>
     </button>
-
     <button class="bottom-tab" :class="{ active: modelValue === 'games' }" @click="$emit('update:modelValue','games')">
-      <span class="nav-icon">▦</span>
-      <span>Spiele</span>
+      <span class="nav-icon">▦</span><span>Spiele</span>
     </button>
-
     <button class="bottom-tab" :class="{ active: modelValue === 'ranking' }" @click="$emit('update:modelValue','ranking')">
-      <span class="nav-icon">🏆</span>
-      <span>Rangliste</span>
+      <span class="nav-icon">🏆</span><span>Rangliste</span>
     </button>
-
     <button class="bottom-tab" :class="{ active: modelValue === 'admin' }" @click="$emit('update:modelValue','admin')">
-      <span class="nav-icon">♜</span>
-      <span>Admin</span>
+      <span class="nav-icon">♜</span><span>Admin</span>
     </button>
   </nav>
 </template>
-
 <script setup>
-defineProps({
-  modelValue: String,
-  statusText: String,
-})
-
+defineProps({ modelValue: String, statusText: String })
 defineEmits(['update:modelValue','refresh'])
 </script>
