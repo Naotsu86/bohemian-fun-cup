@@ -1,43 +1,44 @@
 <template>
   <section class="screen">
-    <PlayerLoginPanel v-if="!profile" @logged-in="loadProfile" />
+    <PlayerLoginPanel v-if="!user" @logged-in="loadProfile" />
 
     <div v-else class="card pixel-card menu-window">
-      <h2>👤 Spielerprofil</h2>
+      <h2>👤 Mein Profil</h2>
 
       <div class="menu-body">
-        <p><strong>{{ profile.display_name || profile.players?.name }}</strong></p>
+        <p><strong>E-Mail:</strong><br>{{ user.email }}</p>
 
-        <div class="field">
-          <label>Körperfarbe</label>
-          <select v-model="draft.avatar_body">
-            <option value="black">Schwarz</option>
-            <option value="gray">Grau</option>
-            <option value="blue">Blau</option>
-            <option value="purple">Lila</option>
-          </select>
-        </div>
+        <template v-if="loadingProfile">
+          <p class="muted">Profil wird geladen...</p>
+        </template>
 
-        <div class="field">
-          <label>Bauchfarbe</label>
-          <select v-model="draft.avatar_belly">
-            <option value="white">Weiß</option>
-            <option value="cream">Creme</option>
-            <option value="pink">Rosa</option>
-            <option value="mint">Mint</option>
-          </select>
-        </div>
+        <template v-else-if="profile">
+          <p><strong>Status:</strong><br>Spieler</p>
+          <p><strong>Spielername:</strong><br>{{ profile.display_name || profile.players?.name || 'Noch nicht gesetzt' }}</p>
 
-        <div class="field">
-          <label>Bio</label>
-          <textarea v-model="draft.bio" rows="3" placeholder="Kurzer Text zu deinem Pinguin"></textarea>
-        </div>
+          <div class="profile-preview">
+            <div class="penguin-placeholder">🐧</div>
+            <div>
+              <p><strong>Avatar</strong></p>
+              <p class="muted">
+                Körper: {{ profile.avatar_body }}<br>
+                Bauch: {{ profile.avatar_belly }}
+              </p>
+            </div>
+          </div>
 
-        <button class="btn primary full" @click="save" :disabled="saving">
-          {{ saving ? 'Speichern...' : 'Avatar speichern' }}
-        </button>
+          <button class="btn primary full" disabled>
+            Avatar bearbeiten kommt als Nächstes
+          </button>
+        </template>
 
-        <button class="btn full" @click="logout">
+        <template v-else>
+          <p class="error-small">
+            Für diesen Login wurde noch kein Spielerprofil gefunden.
+          </p>
+        </template>
+
+        <button class="btn full" @click="logoutUser">
           Abmelden
         </button>
 
@@ -50,54 +51,37 @@
 <script setup>
 import { onMounted, ref } from 'vue'
 import PlayerLoginPanel from '../components/auth/PlayerLoginPanel.vue'
-import { getMyProfile, updateMyAvatar } from '../services/playerProfileService'
-import { signOut } from '../services/authV2'
+import { getCurrentUser, signOut } from '../services/authV2'
+import { getMyProfile } from '../services/playerProfileService'
 
+const user = ref(null)
 const profile = ref(null)
-const draft = ref({})
-const saving = ref(false)
+const loadingProfile = ref(false)
 const message = ref('')
 
 onMounted(loadProfile)
 
 async function loadProfile() {
-  try {
-    profile.value = await getMyProfile()
-    if (profile.value) {
-      draft.value = {
-        avatar_body: profile.value.avatar_body,
-        avatar_belly: profile.value.avatar_belly,
-        head_item: profile.value.head_item,
-        face_item: profile.value.face_item,
-        body_item: profile.value.body_item,
-        back_item: profile.value.back_item,
-        bio: profile.value.bio || ''
-      }
-    }
-  } catch (e) {
-    console.warn(e)
-  }
-}
-
-async function save() {
-  if (!profile.value) return
-
-  saving.value = true
   message.value = ''
 
   try {
-    profile.value = await updateMyAvatar(profile.value.id, draft.value)
-    message.value = 'Gespeichert.'
-  } catch (e) {
-    message.value = e.message || 'Speichern fehlgeschlagen.'
+    user.value = await getCurrentUser()
+
+    if (!user.value) return
+
+    loadingProfile.value = true
+    profile.value = await getMyProfile()
+  } catch (error) {
+    message.value = error.message || 'Profil konnte nicht geladen werden.'
   } finally {
-    saving.value = false
+    loadingProfile.value = false
   }
 }
 
-async function logout() {
+async function logoutUser() {
   await signOut()
+  user.value = null
   profile.value = null
-  draft.value = {}
+  message.value = 'Abgemeldet.'
 }
 </script>

@@ -1,4 +1,4 @@
-import { supabase } from './supabaseData'
+import { supabase } from '../api/supabase'
 
 export async function getMyProfile() {
   const { data: userData, error: userError } = await supabase.auth.getUser()
