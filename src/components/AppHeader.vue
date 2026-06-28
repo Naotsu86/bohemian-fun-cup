@@ -29,6 +29,11 @@
       <span>Rangliste</span>
     </button>
 
+    <button class="pixel-tab" :class="{ active: modelValue === 'profile' }" @click="$emit('update:modelValue','profile')">
+      <img class="nav-icon-img" :src="icons.profile" alt="" />
+      <span>Profil</span>
+    </button>
+
     <button class="pixel-tab" :class="{ active: modelValue === 'admin' }" @click="$emit('update:modelValue','admin')">
       <img class="nav-icon-img" :src="icons.admin" alt="" />
       <span>Admin</span>
@@ -49,6 +54,7 @@ const icons = {
   home: `${base}nav-icons/home.png`,
   games: `${base}nav-icons/games.png`,
   ranking: `${base}nav-icons/ranking.png`,
-  admin: `${base}icons/admin-key.png`, // <-- Schlüssel statt Pinguin
+  profile: `${base}icons/admin-key.png`,
+  admin: `${base}icons/admin-key.png`,
 }
 </script>
