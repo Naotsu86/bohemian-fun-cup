@@ -31,3 +31,49 @@
     height:34px;
   }
 }
+
+
+/* --- Header komplett sichtbar + neue Icons --- */
+.header-logo{
+  object-fit:contain !important;
+  object-position:center !important;
+  background:#aee1ff;
+}
+
+@media(max-width:760px){
+  .header-logo{
+    height:126px !important;
+    object-fit:contain !important;
+    object-position:center !important;
+  }
+}
+
+.nav-icon-img{
+  width:28px;
+  height:28px;
+  object-fit:contain;
+  image-rendering:pixelated;
+  filter:drop-shadow(1px 1px 0 rgba(0,0,0,.35));
+}
+
+.section-title-icon{
+  width:24px;
+  height:24px;
+  object-fit:contain;
+  image-rendering:pixelated;
+  vertical-align:-5px;
+  margin-right:8px;
+  filter:drop-shadow(1px 1px 0 rgba(0,0,0,.22));
+}
+
+@media(max-width:760px){
+  .nav-icon-img{
+    width:26px;
+    height:26px;
+  }
+
+  .section-title-icon{
+    width:22px;
+    height:22px;
+  }
+}
