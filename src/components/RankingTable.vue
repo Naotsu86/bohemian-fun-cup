@@ -1,28 +1,7 @@
-<template>
-  <div class="ranking-list">
-    <article v-for="(r, i) in rows" :key="r.id" class="ranking-row ranking-row-compact">
-      <div class="ranking-content">
-        <div class="ranking-name-main">{{ r.name }}</div>
-        <div class="ranking-points-main">{{ r.points }} Punkte</div>
-        <div class="ranking-meta">{{ r.games }} Spiele · {{ r.wins }} Siege · Ø {{ r.avg }}</div>
-      </div>
+<!-- Änderungen -->
+<!-- Ersetze den bisherigen Platz-Block durch: -->
 
-      <div class="ranking-place-badge" :aria-label="`${startAt + i}. Platz`">
-        {{ startAt + i }}
-      </div>
-    </article>
-  </div>
-</template>
-
-<script setup>
-defineProps({
-  rows: {
-    type: Array,
-    default: () => []
-  },
-  startAt: {
-    type: Number,
-    default: 1
-  }
-})
-</script>
+<div class="rank-badge" :aria-label="`${startAt + i}. Platz`">
+  <img src="/icons/rank-badge-empty.svg" alt="" />
+  <span>{{ startAt + i }}</span>
+</div>
