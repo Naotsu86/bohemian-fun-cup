@@ -49,6 +49,6 @@ const icons = {
   home: `${base}nav-icons/home.png`,
   games: `${base}nav-icons/games.png`,
   ranking: `${base}nav-icons/ranking.png`,
-  admin: `${base}nav-icons/admin.png`,
+  admin: `${base}icons/admin-key.png`, // <-- Schlüssel statt Pinguin
 }
 </script>
