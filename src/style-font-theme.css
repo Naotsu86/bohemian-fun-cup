@@ -1,0 +1,48 @@
+/* ===========================
+   Pixel Font Theme (DotGothic16)
+   =========================== */
+
+@font-face {
+  font-family: "DotGothic16";
+  src: url("/fonts/DotGothic16-Regular.ttf") format("truetype");
+  font-display: swap;
+}
+
+:root{
+  --font-body: system-ui, sans-serif;
+  --font-pixel: "DotGothic16", monospace;
+}
+
+/* Pixel headings */
+h1,h2,h3,
+.screen-title,
+.card h2,
+.bottom-nav,
+.bottom-nav button,
+.tab-button,
+.pixel-title,
+.pixel-button,
+.score,
+.points,
+.live-badge{
+    font-family: var(--font-pixel);
+    letter-spacing: .04em;
+    font-weight:400;
+}
+
+/* normal text */
+body,
+p,
+input,
+textarea,
+label,
+.player-name,
+.player-stats{
+    font-family: var(--font-body);
+}
+
+/* optional:
+body.pixel-font-all{
+    --font-body:"DotGothic16", monospace;
+}
+*/
