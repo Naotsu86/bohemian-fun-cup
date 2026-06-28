@@ -1,0 +1,13 @@
+<!-- RankingView.vue -->
+<!-- Podium unverändert -->
+<Podium :top-rows="ranking.slice(0,3)" />
+
+<!-- Überschrift 'Gesamtrangliste' ENTFERNEN -->
+
+<div class="ranking-list">
+  <RankingRow
+    v-for="player in ranking.slice(3)"
+    :key="player.id"
+    :player="player"
+  />
+</div>
