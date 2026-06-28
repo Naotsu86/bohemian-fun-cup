@@ -1,0 +1,33 @@
+Ersetze die Icons wie folgt:
+
+1. public/icons/admin-key.png
+   -> AdminView.vue
+   Ersetze das bisherige Schloss/Schlüssel-Icon durch:
+   /icons/admin-key.png
+
+2. public/icons/next-game.png
+   -> OverviewView.vue
+   Überschrift 'Nächstes Spiel'
+   Statt der Sanduhr:
+   <img class="headline-icon" src="/icons/next-game.png" alt="Nächstes Spiel">
+
+3. public/icons/versus.png
+   -> GameCard.vue (bzw. Spielkarte)
+   Ersetze den Volleyball zwischen den Teams durch:
+   <img class="versus-icon" src="/icons/versus.png" alt="VS">
+
+CSS (falls noch nicht vorhanden):
+
+.headline-icon{
+  width:22px;
+  height:22px;
+  image-rendering:pixelated;
+  vertical-align:middle;
+  margin-right:8px;
+}
+
+.versus-icon{
+  width:28px;
+  height:28px;
+  image-rendering:pixelated;
+}
