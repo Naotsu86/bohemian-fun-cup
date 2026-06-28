@@ -1,0 +1,18 @@
+/* Optional: unten an src/style.css anhängen, falls die Icons zu klein wirken */
+.nav-icon-img{
+  width:30px;
+  height:30px;
+  object-fit:contain;
+  image-rendering:auto;
+}
+
+.pixel-tab.active .nav-icon-img{
+  transform:translateY(-1px) scale(1.05);
+}
+
+@media(max-width:760px){
+  .nav-icon-img{
+    width:28px;
+    height:28px;
+  }
+}
