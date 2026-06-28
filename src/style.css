@@ -216,7 +216,7 @@ label{
 }
 
 
-/* --- Ranking Badge Overlay: Platznummer rechts im Badge --- */
+/* --- Ranking Badges 4-99: Badge rechts, Punkte links --- */
 
 .ranking-followup .menu-body{
   padding-top:10px;
@@ -224,7 +224,7 @@ label{
 
 .ranking-row-compact{
   display:grid !important;
-  grid-template-columns:1fr 48px !important;
+  grid-template-columns:1fr 54px !important;
   align-items:center;
   gap:12px;
   min-height:72px;
@@ -260,16 +260,17 @@ label{
   margin-top:2px;
 }
 
-.rank-badge{
+/* Wichtig: eigene Klasse, nicht .rank-badge, weil diese bei Podium-Fixes ausgeblendet wurde */
+.dynamic-rank-badge{
   position:relative;
-  width:42px;
-  height:42px;
+  width:46px;
+  height:46px;
   justify-self:end;
   align-self:center;
   flex:0 0 auto;
 }
 
-.rank-badge img{
+.dynamic-rank-badge img{
   width:100%;
   height:100%;
   display:block;
@@ -277,26 +278,26 @@ label{
   image-rendering:pixelated;
 }
 
-.rank-badge span{
+.dynamic-rank-badge span{
   position:absolute;
-  inset:0;
+  inset:0 0 6px 0;
   display:grid;
   place-items:center;
   font-family:var(--font-readable, system-ui, sans-serif);
   font-weight:900;
-  font-size:16px;
+  font-size:17px;
   color:#fff;
   line-height:1;
   text-shadow:
-    1px 1px 0 #13233d,
-   -1px 1px 0 #13233d,
-    1px -1px 0 #13233d,
-   -1px -1px 0 #13233d;
+    1px 1px 0 #101827,
+   -1px 1px 0 #101827,
+    1px -1px 0 #101827,
+   -1px -1px 0 #101827;
 }
 
 @media(max-width:760px){
   .ranking-row-compact{
-    grid-template-columns:1fr 42px !important;
+    grid-template-columns:1fr 48px !important;
     min-height:66px;
   }
 
@@ -312,12 +313,13 @@ label{
     font-size:11px;
   }
 
-  .rank-badge{
-    width:36px;
-    height:36px;
+  .dynamic-rank-badge{
+    width:40px;
+    height:40px;
   }
 
-  .rank-badge span{
-    font-size:14px;
+  .dynamic-rank-badge span{
+    font-size:15px;
+    inset:0 0 5px 0;
   }
 }

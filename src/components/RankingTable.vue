@@ -7,7 +7,7 @@
         <div class="ranking-meta">{{ r.games }} Spiele · {{ r.wins }} Siege · Ø {{ r.avg }}</div>
       </div>
 
-      <div class="rank-badge" :aria-label="`${startAt + i}. Platz`">
+      <div class="dynamic-rank-badge" :aria-label="`${startAt + i}. Platz`">
         <img :src="rankBadgeIcon" alt="" />
         <span>{{ startAt + i }}</span>
       </div>
