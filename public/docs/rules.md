@@ -1,5 +1,3 @@
-# Turnierregeln
-
 ## 1. Spielmodus
 
 Gespielt wird bis **21 Punkte**.
@@ -39,3 +37,5 @@ Die drei punktbesten Spieler erhalten einen Preis.
 Bei Punktgleichstand um die Plätze **1 bis 3** wird ein **Entscheidungsspiel im Modus 2 gegen 2 bis 3 Punkte** gespielt.
 
 Die in diesem Spiel erzielten Punkte werden **nicht** auf das Punktekonto angerechnet und dienen ausschließlich zur Ermittlung der endgültigen Platzierung.
+
+Der Gewinner bekommt den Wanderpokal bis zum nächsten Bohemian Fun Cup und sein Name wird auf dem Pokalsockel aufgeschrieben.
