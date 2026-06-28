@@ -2,13 +2,20 @@
 <section class="screen overview-screen">
   <div class="card pixel-card menu-window hero-card">
     <h2><span class="headline-icon">🏆</span> Top 3</h2>
-    <Podium :top-rows="ranking.slice(0,3)" />
+    <div class="menu-body">
+      <Podium :top-rows="ranking.slice(0,3)" />
+    </div>
   </div>
 
   <div class="card pixel-card menu-window compact-card">
-    <h2><span class="headline-icon">⏳</span> Nächstes Spiel</h2>
-    <p v-if="openMatches.length===0" class="muted">Aktuell ist kein offenes Spiel vorhanden.</p>
-    <MatchCard v-else :match="openMatches[0]" :number="matchNumber(openMatches[0])" :editable="false" :name-of="nameOf" />
+    <h2>
+      <img class="section-title-icon" :src="calendarIcon" alt="" />
+      Nächstes Spiel
+    </h2>
+    <div class="menu-body">
+      <p v-if="openMatches.length===0" class="muted">Aktuell ist kein offenes Spiel vorhanden.</p>
+      <MatchCard v-else :match="openMatches[0]" :number="matchNumber(openMatches[0])" :editable="false" :name-of="nameOf" />
+    </div>
   </div>
 
   <div class="card pixel-card menu-window rules-card">
@@ -16,7 +23,9 @@
       <img class="section-title-icon" :src="rulesIcon" alt="" />
       Regeln
     </h2>
-    <p class="rules-text">{{ rules }}</p>
+    <div class="menu-body">
+      <p class="rules-text">{{ rules }}</p>
+    </div>
   </div>
 </section>
 </template>
@@ -27,5 +36,7 @@ import MatchCard from '../components/MatchCard.vue'
 
 defineProps({ ranking:Array, openMatches:Array, rules:String, matchNumber:Function, nameOf:Function })
 
-const rulesIcon = `${import.meta.env.BASE_URL}section-icons/rules.png`
+const base = import.meta.env.BASE_URL
+const calendarIcon = `${base}icons/calendar.png`
+const rulesIcon = `${base}section-icons/rules.png`
 </script>
