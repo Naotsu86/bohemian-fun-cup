@@ -1,16 +1,15 @@
 <template>
   <div class="ranking-list">
     <article v-for="(r, i) in rows" :key="r.id" class="ranking-row ranking-row-compact">
-      <div class="ranking-badge-number">
+      <div class="ranking-content">
+        <div class="ranking-name-main">{{ r.name }}</div>
+        <div class="ranking-points-main">{{ r.points }} Punkte</div>
+        <div class="ranking-meta">{{ r.games }} Spiele · {{ r.wins }} Siege · Ø {{ r.avg }}</div>
+      </div>
+
+      <div class="ranking-place-badge" :aria-label="`${startAt + i}. Platz`">
         {{ startAt + i }}
       </div>
-
-      <div class="ranking-name">
-        <b>{{ r.name }}</b>
-        <small>{{ r.games }} Spiele · {{ r.wins }} Siege · Ø {{ r.avg }}</small>
-      </div>
-
-      <div class="ranking-points">{{ r.points }}</div>
     </article>
   </div>
 </template>
