@@ -1,21 +1,9 @@
-Kopiere:
+Lege die Datei ab unter:
 
-public/fonts/DotGothic16-Regular.ttf
-nach
-public/fonts/
+src/styles/theme/font-theme.css
 
-Dann den Inhalt von
+und importiere sie einmal in src/main.js:
 
-src/style-font-theme.css
+import './styles/theme/font-theme.css'
 
-GANZ UNTEN an deine bestehende src/style.css anhängen.
-
-Standard:
-- Überschriften = DotGothic16
-- Navigation = DotGothic16
-- Buttons = DotGothic16
-- Punkte/Zahlen = DotGothic16
-- Fließtext bleibt normal.
-
-Wenn du später ALLES in DotGothic16 möchtest:
-body die Klasse 'pixel-font-all' geben oder die optionale Regel aktivieren.
+Alternativ kannst du den Inhalt unten an deine style.css anhängen.

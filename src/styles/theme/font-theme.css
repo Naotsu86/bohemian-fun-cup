@@ -1,0 +1,72 @@
+/* src/styles/theme/font-theme.css
+   Variante 3:
+   Pixel nur für UI-Elemente.
+   Inhalte bleiben gut lesbar.
+*/
+
+/* ===== Pixel UI ===== */
+
+nav,
+.bottom-nav,
+button,
+.btn,
+.pixel-button,
+.menu-title,
+.card > h2,
+.screen > h2,
+.pixel-title,
+.headline,
+.ranking-title,
+.podium-title{
+  font-family:'Silkscreen', monospace;
+  font-weight:400;
+  letter-spacing:.04em;
+}
+
+/* Platznummern */
+.rank-badge,
+.rank-number,
+.place,
+.position{
+  font-family:'Silkscreen', monospace;
+  font-weight:400;
+}
+
+/* ===== Leseschrift ===== */
+
+body,
+p,
+li,
+label,
+input,
+textarea,
+.player-name,
+.player-stats,
+.rules-text,
+.markdown-content,
+.markdown-content p,
+.markdown-content li,
+.markdown-content h1,
+.markdown-content h2,
+.markdown-content h3,
+.ranking-row,
+.ranking-row .name,
+.ranking-row .points,
+.ranking-row .details{
+  font-family:'DotGothic16', sans-serif;
+  font-weight:400;
+  letter-spacing:0;
+}
+
+/* Spielernamen etwas kräftiger */
+.player-name,
+.ranking-row .name{
+  font-weight:600;
+}
+
+/* Punkte */
+.points,
+.score{
+  font-weight:600;
+  color:#118a2b;
+}
