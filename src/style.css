@@ -214,3 +214,72 @@ label{
     height:16px;
   }
 }
+
+
+/* --- Ranking Badges ab Platz 4 --- */
+
+.ranking-followup .menu-body{
+  padding-top:10px;
+}
+
+.ranking-row-compact{
+  grid-template-columns:56px 1fr auto;
+  min-height:56px;
+}
+
+.ranking-badge-number{
+  width:42px;
+  height:42px;
+  display:grid;
+  place-items:center;
+  justify-self:center;
+  align-self:center;
+  color:#101827;
+  font-family:var(--font-readable, system-ui, sans-serif);
+  font-size:18px;
+  font-weight:800;
+  line-height:1;
+  border:3px solid #0c1726;
+  border-radius:50%;
+  background:
+    radial-gradient(circle at 50% 50%, #ffffff 0 31%, transparent 32%),
+    radial-gradient(circle at 50% 50%, #d6232a 0 53%, transparent 54%),
+    radial-gradient(circle at 50% 50%, #ffffff 0 71%, transparent 72%),
+    radial-gradient(circle at 50% 50%, #1f5dab 0 100%);
+  box-shadow:
+    2px 2px 0 rgba(0,0,0,.28),
+    inset 0 0 0 2px rgba(255,255,255,.35);
+}
+
+.ranking-row-compact .ranking-points{
+  font-family:var(--font-readable, system-ui, sans-serif);
+  font-weight:800;
+  font-size:20px;
+}
+
+.ranking-row-compact .ranking-name b{
+  font-family:var(--font-readable, system-ui, sans-serif);
+  font-weight:800;
+}
+
+.ranking-row-compact .ranking-name small{
+  font-family:var(--font-readable, system-ui, sans-serif);
+  font-weight:400;
+}
+
+@media(max-width:760px){
+  .ranking-row-compact{
+    grid-template-columns:50px 1fr auto;
+    min-height:54px;
+  }
+
+  .ranking-badge-number{
+    width:38px;
+    height:38px;
+    font-size:16px;
+  }
+
+  .ranking-row-compact .ranking-points{
+    font-size:18px;
+  }
+}

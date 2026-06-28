@@ -9,7 +9,7 @@
 
     <div v-if="ranking.length > 3" class="card pixel-card menu-window ranking-followup">
       <div class="menu-body">
-        <RankingTable :rows="ranking.slice(3)" />
+        <RankingTable :rows="ranking.slice(3)" :start-at="4" />
       </div>
     </div>
   </section>
