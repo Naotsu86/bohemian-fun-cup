@@ -3,7 +3,10 @@
   <div class="card pixel-card menu-window hero-card">
     <h2><span class="headline-icon">🏆</span> Top 3</h2>
     <div class="menu-body">
-      <Podium :top-rows="ranking.slice(0,3)" />
+      <Podium
+        :top-rows="ranking.slice(0,3)"
+        @select-player="openPlayerCard"
+      />
     </div>
   </div>
 
@@ -14,7 +17,13 @@
     </h2>
     <div class="menu-body">
       <p v-if="openMatches.length===0" class="muted">Aktuell ist kein offenes Spiel vorhanden.</p>
-      <MatchCard v-else :match="openMatches[0]" :number="matchNumber(openMatches[0])" :editable="false" :name-of="nameOf" />
+      <MatchCard
+        v-else
+        :match="openMatches[0]"
+        :number="matchNumber(openMatches[0])"
+        :editable="false"
+        :name-of="nameOf"
+      />
     </div>
   </div>
 
@@ -27,6 +36,12 @@
       <MarkdownBlock :markdown="rulesMarkdown || rules" />
     </div>
   </div>
+
+  <PlayerCardModal
+    v-if="selectedPlayer"
+    :player="selectedPlayer"
+    @close="selectedPlayer = null"
+  />
 </section>
 </template>
 
@@ -35,13 +50,25 @@ import { onMounted, ref } from 'vue'
 import Podium from '../components/Podium.vue'
 import MatchCard from '../components/MatchCard.vue'
 import MarkdownBlock from '../components/MarkdownBlock.vue'
+import PlayerCardModal from '../components/PlayerCardModal.vue'
 
-defineProps({ ranking:Array, openMatches:Array, rules:String, matchNumber:Function, nameOf:Function })
+defineProps({
+  ranking: Array,
+  openMatches: Array,
+  rules: String,
+  matchNumber: Function,
+  nameOf: Function
+})
 
 const base = import.meta.env.BASE_URL
 const calendarIcon = `${base}icons/calendar.png`
 const rulesIcon = `${base}section-icons/rules.png`
 const rulesMarkdown = ref('')
+const selectedPlayer = ref(null)
+
+function openPlayerCard(player) {
+  selectedPlayer.value = player
+}
 
 onMounted(async () => {
   try {

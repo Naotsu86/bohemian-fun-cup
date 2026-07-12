@@ -224,14 +224,24 @@ label{
 
 .ranking-row-compact{
   display:grid !important;
-  grid-template-columns:1fr 54px !important;
+  grid-template-columns:60px 1fr 54px !important;
   align-items:center;
   gap:12px;
   min-height:72px;
 }
 
+.ranking-avatar-box{
+  width:56px;
+  height:56px;
+  border:3px solid var(--pixel-border, #2b2115);
+  background:linear-gradient(#7bd3ff 0 55%, #e7b861 55%);
+  overflow:hidden;
+  flex:0 0 auto;
+}
+
 .ranking-content{
   min-width:0;
+  text-align:left;
 }
 
 .ranking-name-main{
@@ -297,8 +307,13 @@ label{
 
 @media(max-width:760px){
   .ranking-row-compact{
-    grid-template-columns:1fr 48px !important;
+    grid-template-columns:48px 1fr 48px !important;
     min-height:66px;
+  }
+
+  .ranking-avatar-box{
+    width:44px;
+    height:44px;
   }
 
   .ranking-name-main{
