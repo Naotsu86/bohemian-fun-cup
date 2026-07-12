@@ -1,0 +1,126 @@
+{
+  "$schema_version": "3.0",
+  "$comment": "Basiert auf den manuell in Aseprite korrigierten Layern (pingui_manuell.zip). Body, Belly, Eyes, Beak, Feet und Shadow sind als 6 saubere, getrennte 256x256-PNGs angelegt. Diese Spec ersetzt alle vorherigen Versionen.",
+
+  "canvas": {
+    "width": 256,
+    "height": 256,
+    "note": "Alle Layer-PNGs sind exakt 256x256, transparenter Hintergrund, pixelgenau aufeinander ausgerichtet."
+  },
+
+  "layer_order_bottom_to_top": [
+    "shadow",
+    "body",
+    "belly",
+    "eyes",
+    "beak",
+    "feet",
+    "shorts",
+    "head_item",
+    "accessory"
+  ],
+
+  "layers": {
+    "shadow": {
+      "description": "Flache Bodenschatten-Ebene unter dem Pinguin.",
+      "recolorable": false,
+      "file": "shadow.png",
+      "bbox": { "x": 50, "y": 203, "width": 156, "height": 23 },
+      "center": { "x": 127, "y": 214 }
+    },
+    "body": {
+      "description": "Kopf, Flügel, Körper-Kontur (ohne Bauch, Schnabel, Füße, Augen). Einfärbbar über mehrere Farbvarianten.",
+      "recolorable": true,
+      "folder": "body_colors",
+      "filename_pattern": "body_{color_id}.png",
+      "bbox": { "x": 43, "y": 26, "width": 170, "height": 192 },
+      "center": { "x": 127, "y": 121 }
+    },
+    "belly": {
+      "description": "Der Bauch-Bereich, unabhängig vom Body einfärbbar.",
+      "recolorable": true,
+      "file": "belly.png",
+      "bbox": { "x": 79, "y": 61, "width": 99, "height": 140 },
+      "center": { "x": 128, "y": 130 }
+    },
+    "eyes": {
+      "description": "Die zwei schwarzen Pupillen, fix.",
+      "recolorable": false,
+      "file": "eyes.png",
+      "bbox": { "x": 98, "y": 70, "width": 61, "height": 24 },
+      "center": { "x": 128, "y": 81 }
+    },
+    "beak": {
+      "description": "Schnabel inkl. eigener Kontur, fix, unabhängig von Body-Farbe.",
+      "recolorable": false,
+      "file": "beak.png",
+      "bbox": { "x": 108, "y": 81, "width": 40, "height": 30 },
+      "center": { "x": 127, "y": 95 }
+    },
+    "feet": {
+      "description": "Beide Füße inkl. eigener Kontur, fix, unabhängig von Body-Farbe.",
+      "recolorable": false,
+      "file": "feet.png",
+      "bbox": { "x": 61, "y": 198, "width": 134, "height": 24 },
+      "center": { "x": 127, "y": 209 }
+    },
+    "shorts": {
+      "description": "Optionales Accessoire: Shorts/Rock. Noch nicht erstellt - Platzhalter-Slot.",
+      "recolorable": true,
+      "slot": "lower_body",
+      "status": "not_yet_created",
+      "anchor": { "x": 128, "y": 175 },
+      "suggested_bbox": { "x": 80, "y": 150, "width": 100, "height": 60 }
+    },
+    "head_item": {
+      "description": "Optionales Accessoire: Mütze, Hut etc. Noch nicht erstellt - Platzhalter-Slot.",
+      "recolorable": true,
+      "slot": "head_top",
+      "status": "not_yet_created",
+      "anchor": { "x": 128, "y": 26 },
+      "suggested_bbox": { "x": 60, "y": 5, "width": 140, "height": 45 }
+    },
+    "accessory": {
+      "description": "Optionales Zusatz-Accessoire (Brille, Schal etc.). Noch nicht erstellt - Platzhalter-Slot.",
+      "recolorable": true,
+      "slot": "free",
+      "status": "not_yet_created",
+      "anchor": { "x": 128, "y": 95 }
+    }
+  },
+
+  "color_palette": [
+    { "id": "black",  "label": "Schwarz", "hex": "#191B1C" },
+    { "id": "blue",   "label": "Blau",    "hex": "#2F7FC1" },
+    { "id": "navy",   "label": "Navy",    "hex": "#243B64" },
+    { "id": "teal",   "label": "Türkis",  "hex": "#209C9A" },
+    { "id": "green",  "label": "Grün",    "hex": "#4E8E35" },
+    { "id": "lime",   "label": "Lime",    "hex": "#86B93D" },
+    { "id": "yellow", "label": "Gelb",    "hex": "#D8A91F" },
+    { "id": "orange", "label": "Orange",  "hex": "#D96B1F" },
+    { "id": "red",    "label": "Rot",     "hex": "#C94B3D" },
+    { "id": "pink",   "label": "Pink",    "hex": "#D96AA5" },
+    { "id": "purple", "label": "Lila",    "hex": "#7B4A9E" },
+    { "id": "brown",  "label": "Braun",   "hex": "#7A4A28" },
+    { "id": "gray",   "label": "Grau",    "hex": "#8A8D8F" }
+  ],
+
+  "asset_status": {
+    "body_colors": "13 Varianten generiert (black + 12 SNES-Farben), Schattierung des Original body_black.png übernommen",
+    "belly": "1 Variante, manuell in Aseprite korrigiert (v2) - Lücke unter dem Schnabel behoben, 0 Leck-Pixel verifiziert",
+    "eyes": "fix, 1 Datei",
+    "beak": "fix, 1 Datei",
+    "feet": "fix, 1 Datei",
+    "shadow": "fix, 1 Datei",
+    "shorts": "noch nicht erstellt",
+    "head_item": "noch nicht erstellt",
+    "accessory": "noch nicht erstellt"
+  },
+
+  "next_steps": [
+    "Belly-Farbvarianten erstellen (analog zu body_colors, separate Palette möglich).",
+    "Shorts/Rock-Layer als Aseprite-Datei anlegen, anschließend Bounding-Box in dieser Spec ergänzen.",
+    "Head-Item-Layer (Mütze o.ä.) anlegen.",
+    "Avatar-Editor-Komponente im Frontend an diese Spec anbinden (avatarOptions.js entsprechend aktualisieren)."
+  ]
+}
