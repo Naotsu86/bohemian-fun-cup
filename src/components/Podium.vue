@@ -22,9 +22,14 @@
         @click="$emit('select-player', row)"
       >
         <div class="podium-title">{{ row.selected_title_name || 'Kein Titel' }}</div>
-        <div class="podium-name">{{ row.name }}</div>
-        <div class="podium-points">{{ row.points }} Punkte</div>
-        <div class="podium-meta">{{ row.games }} Spiele · {{ row.wins }} Siege</div>
+        <div class="podium-name">{{ row.name }} <RankTrend :change="row.rank_change" /> </div>
+        <div class="podium-points">
+  {{ formatPoints(row.points) }} Punkte
+</div>
+        <div class="podium-meta">
+        {{ row.games }} Spiele · {{ formatWinRate(row.win_rate) }} % Siege · Ø {{ formatAverage(row.average_points) }} Punkte
+          
+        </div>
       </button>
 
       <img class="place-badge" :src="badge(index)" :alt="`${index + 1}. Platz`" />
@@ -34,12 +39,29 @@
 
 <script setup>
 import AvatarPreview from './avatar/AvatarPreview.vue'
+import RankTrend from './RankTrend.vue'
 
 defineProps({ topRows: Array })
 defineEmits(['select-player'])
 
 const base = import.meta.env.BASE_URL
 
+function formatWinRate(value) {
+  const number = Number(value || 0)
+  return Number.isInteger(number) ? String(number) : number.toFixed(1)
+}
+
+function formatAverage(value) {
+  const number = Number(value || 0)
+  return Number.isInteger(number) ? String(number) : number.toFixed(1)
+}
+function formatPoints(value) {
+  const number = Number(value || 0)
+
+  return Number.isInteger(number)
+    ? String(number)
+    : number.toFixed(1).replace('.', ',')
+}
 function badge(index) {
   if (index === 0) return `${base}badges/first.png`
   if (index === 1) return `${base}badges/second.png`
@@ -74,6 +96,13 @@ function badge(index) {
   font:inherit;
   color:inherit;
   cursor:pointer;
+}
+
+.podium-meta{
+  display:flex;
+  align-items:center;
+  gap:6px;
+  flex-wrap:wrap;
 }
 
 .podium-title{

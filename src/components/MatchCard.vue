@@ -76,6 +76,14 @@
         Erhält nach Spielende die Punktzahl des Verliererteams und wird im nächsten Spiel bevorzugt aufgestellt.
       </small>
     </div>
+
+    <div v-if="absentPlayers.length" class="absent-box">
+      <strong>NICHT AKTIV / ABWESEND</strong>
+      <span v-for="id in absentPlayers" :key="id">{{ nameOf(id) }}</span>
+      <small>
+        Erhält für dieses Spiel ebenfalls die Punktzahl des Verliererteams.
+      </small>
+    </div>
   </article>
 </template>
 
@@ -129,6 +137,7 @@ watch(
 )
 
 const benchPlayers = computed(() => props.match.bench_players || [])
+const absentPlayers = computed(() => props.match.absent_players || [])
 
 const finished = computed(() =>
   props.match.score_a !== null &&
@@ -181,7 +190,8 @@ function saveScore() {
 </script>
 
 <style scoped>
-.bench-box{
+.bench-box,
+.absent-box{
   margin-top:10px;
   border:3px solid #b89354;
   background:#fff4d2;
@@ -192,20 +202,23 @@ function saveScore() {
   align-items:center;
 }
 
-.bench-box strong{
+.bench-box strong,
+.absent-box strong{
   font-family:var(--font-pixel, 'Silkscreen', monospace);
   letter-spacing:1px;
   color:#7c2d12;
 }
 
-.bench-box span{
+.bench-box span,
+.absent-box span{
   border:2px solid #b89354;
   background:#fffdf6;
   padding:3px 7px;
   font-weight:900;
 }
 
-.bench-box small{
+.bench-box small,
+.absent-box small{
   width:100%;
   color:#5f6f86;
 }

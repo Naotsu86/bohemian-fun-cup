@@ -7,18 +7,26 @@ export async function getMyProfile() {
   const user = userData.user
   if (!user) return null
 
-  const { data, error } = await supabase
-    .from('player_profiles')
-    .select('*, players(name, email, approved, active)')
-    .eq('user_id', user.id)
-    .maybeSingle()
+  const [profileResult, sunGamesResult] = await Promise.all([
+    supabase
+      .from('player_profiles')
+      .select('*, players(name, email, approved, active)')
+      .eq('user_id', user.id)
+      .maybeSingle(),
+    supabase.rpc('get_my_sun_games_count')
+  ])
 
-  if (error) throw error
-  if (!data) return null
+  if (profileResult.error) throw profileResult.error
+  if (!profileResult.data) return null
+
+  if (sunGamesResult.error) {
+    console.warn('Sonnenspiele konnten nicht geladen werden:', sunGamesResult.error.message)
+  }
 
   return {
-    ...data,
-    level: levelFromXp(Number(data.xp_total || 0))
+    ...profileResult.data,
+    sun_games_count: Number(sunGamesResult.data || 0),
+    level: levelFromXp(Number(profileResult.data.xp_total || 0))
   }
 }
 

@@ -52,7 +52,14 @@ const error = ref('')
 onMounted(load)
 
 function defaultReq() {
-  return { req_teamgeist: 0, req_geschwindigkeit: 0, req_kraft: 0, req_technik: 0, req_ehrgeiz: 0 }
+  return {
+    req_teamgeist: 0,
+    req_geschwindigkeit: 0,
+    req_kraft: 0,
+    req_technik: 0,
+    req_ehrgeiz: 0,
+    req_team_b_games: 0
+  }
 }
 
 async function load() {
@@ -149,6 +156,9 @@ const CatalogRow = defineComponent({
         field('Kraft', 'req_kraft', 'number'),
         field('Technik', 'req_technik', 'number'),
         field('Ehrgeiz', 'req_ehrgeiz', 'number'),
+        ...(props.type === 'title'
+          ? [field('Sonnenspiele', 'req_team_b_games', 'number')]
+          : []),
         field('Sort', 'sort_order', 'number'),
         h('label', { class: 'check-field' }, [
           h('input', { type: 'checkbox', checked: props.row.active, onChange: e => { props.row.active = e.target.checked } }),
@@ -167,7 +177,7 @@ const CatalogRow = defineComponent({
 <style scoped>
 .catalog-tabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
 .catalog-row{border:3px solid #c5a66f;background:#fffdf6;padding:10px;margin-top:12px}
-.catalog-grid{display:grid;gap:8px;align-items:end;grid-template-columns:.65fr 1.2fr 2fr repeat(7,.7fr) .65fr}
+.catalog-grid{display:grid;gap:8px;align-items:end;grid-template-columns:.65fr 1.2fr 2fr repeat(8,.7fr) .65fr}
 .field label{display:block;font-size:11px;color:#5f6f86;margin-bottom:3px}
 .field input{width:100%;border:3px solid #b99b69;background:#fffdf6;padding:7px;font-weight:800}
 .id-field input{opacity:.75;background:#f8edc8}

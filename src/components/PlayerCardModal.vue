@@ -14,9 +14,21 @@
 
         <div class="player-card-info">
           <div class="card-label">TITLE</div>
-          <div class="player-card-title">{{ card.selected_title_name || 'Kein Titel' }}</div>
+<div class="player-card-title">{{ card.selected_title_name || 'Kein Titel' }}</div>
 
-          <div class="card-label">NAME</div>
+<div class="strength-bonus-box">
+  <div class="strength-bonus-row">
+    <span>Turnierform</span>
+    <strong>{{ formatSigned(card.form) }}</strong>
+  </div>
+
+  <div class="strength-bonus-row">
+    <span>Titel</span>
+    <strong>{{ formatSigned(card.title_strength_modifier) }}</strong>
+  </div>
+</div>
+
+<div class="card-label">NAME</div>
           <div class="player-card-name">{{ card.name || card.real_name || '-' }}</div>
 
           <div class="special-box">
@@ -44,6 +56,7 @@
       <p v-if="loadError" class="card-error">{{ loadError }}</p>
 
       <div class="stat-list">
+        <SunGamesRow :value="Number(card.sun_games_count || 0)" />
         <PlayerCardStatRow icon="teamgeist" label="TEAMGEIST" color="red" :value="Number(card.stat_teamgeist || 0)" />
         <PlayerCardStatRow icon="speed" label="SPEED" color="yellow" :value="Number(card.stat_geschwindigkeit || 0)" />
         <PlayerCardStatRow icon="kraft" label="KRAFT" color="orange" :value="Number(card.stat_kraft || 0)" />
@@ -58,7 +71,9 @@
 import { computed, onMounted, ref, watch } from 'vue'
 import AvatarPreview from './avatar/AvatarPreview.vue'
 import PlayerCardStatRow from './PlayerCardStatRow.vue'
+import SunGamesRow from './avatar/SunGamesRow.vue'
 import { supabase } from '../api/supabase'
+import { xpForLevel,levelFromXp } from '../utils/levelSystem'
 
 const props = defineProps({
   player: {
@@ -102,6 +117,14 @@ function normalizeCard(row) {
     stat_kraft: Number(row?.stat_kraft || 0),
     stat_technik: Number(row?.stat_technik || 0),
     stat_ehrgeiz: Number(row?.stat_ehrgeiz || 0),
+    sun_games_count: Number(row?.sun_games_count || 0),
+
+ form: Number(row?.form || 0),
+
+title_strength_modifier: Number(
+  row?.title_strength_modifier || 0
+),
+
     body_color: row?.body_color || row?.avatar_body || 'black',
     head_item: row?.head_item || 'none',
     top_item: row?.top_item || 'none',
@@ -119,38 +142,150 @@ async function loadFreshCard() {
   loadError.value = ''
 
   try {
-    const { data, error } = await supabase.rpc('get_player_cards')
+    const [cardsResult, sunGamesResult, playerResult] = await Promise.all([
+      supabase.rpc('get_player_cards'),
 
-    if (error) throw error
+      supabase.rpc('get_player_sun_games_count', {
+        target_player_id: playerId
+      }),
 
-    const fresh = (data || []).find(row => row.player_id === playerId)
+      supabase
+        .from('players')
+        .select('id, name, form')
+        .eq('id', playerId)
+        .single()
+    ])
 
-    if (fresh) {
-      card.value = normalizeCard({
-        ...props.player,
-        ...fresh,
-        id: props.player.id,
-        name: props.player.name || fresh.real_name
-      })
+    if (cardsResult.error) throw cardsResult.error
+    if (sunGamesResult.error) throw sunGamesResult.error
+    if (playerResult.error) throw playerResult.error
+
+    const fresh = (cardsResult.data || []).find(
+      row => row.player_id === playerId
+    )
+
+    let title = null
+
+    if (fresh?.selected_title_id) {
+      const titleResult = await supabase
+        .from('player_titles')
+        .select(`
+          id,
+          name,
+          strength_modifier,
+          speed_modifier,
+          technique_modifier,
+          ambition_modifier,
+          team_modifier,
+          power_modifier,
+          effect_code,
+          effect_value,
+          effect_target,
+          effect_scope
+        `)
+        .eq('id', fresh.selected_title_id)
+        .maybeSingle()
+
+      if (titleResult.error) throw titleResult.error
+      title = titleResult.data
+    } else if (fresh?.selected_title_name) {
+      const titleResult = await supabase
+        .from('player_titles')
+        .select(`
+          id,
+          name,
+          strength_modifier,
+          speed_modifier,
+          technique_modifier,
+          ambition_modifier,
+          team_modifier,
+          power_modifier,
+          effect_code,
+          effect_value,
+          effect_target,
+          effect_scope
+        `)
+        .eq('name', fresh.selected_title_name)
+        .maybeSingle()
+
+      if (titleResult.error) throw titleResult.error
+      title = titleResult.data
     }
+
+    card.value = normalizeCard({
+      ...(fresh || {}),
+      ...props.player,
+
+      id: playerId,
+      player_id: playerId,
+
+      name:
+        playerResult.data?.name ||
+        props.player?.name ||
+        fresh?.real_name,
+
+      form: Number(playerResult.data?.form || 0),
+
+      title_strength_modifier: Number(
+        title?.strength_modifier || 0
+      ),
+
+      title_speed_modifier: Number(
+        title?.speed_modifier || 0
+      ),
+
+      title_technique_modifier: Number(
+        title?.technique_modifier || 0
+      ),
+
+      title_ambition_modifier: Number(
+        title?.ambition_modifier || 0
+      ),
+
+      title_team_modifier: Number(
+        title?.team_modifier || 0
+      ),
+
+      title_power_modifier: Number(
+        title?.power_modifier || 0
+      ),
+
+      title_effect_code:
+        title?.effect_code || null,
+
+      title_effect_value: Number(
+        title?.effect_value || 0
+      ),
+
+      title_effect_target:
+        title?.effect_target || 'self',
+
+      title_effect_scope:
+        title?.effect_scope || 'permanent',
+
+      sun_games_count: Number(
+        sunGamesResult.data || 0
+      )
+    })
+    
   } catch (error) {
-    loadError.value = error.message || 'Spielerkarte konnte nicht geladen werden.'
+    loadError.value =
+      error.message ||
+      'Spielerkarte konnte nicht geladen werden.'
   } finally {
     loading.value = false
   }
 }
+function formatSigned(value) {
+  const amount = Number(value || 0)
 
-function xpForLevel(targetLevel) {
-  let needed = 0
-  for (let current = 1; current < targetLevel; current += 1) needed += current * 15 + 10
-  return needed
+  if (amount > 0) {
+    return `+${amount.toFixed(2).replace('.', ',')}`
+  }
+
+  return amount.toFixed(2).replace('.', ',')
 }
 
-function levelFromXp(totalXp) {
-  let lvl = 1
-  while (totalXp >= xpForLevel(lvl + 1) && lvl < 99) lvl += 1
-  return lvl
-}
 </script>
 
 <style scoped>
@@ -305,5 +440,30 @@ function levelFromXp(totalXp) {
     max-width:260px;
     margin:auto;
   }
+}
+
+.strength-bonus-box {
+  display: grid;
+  gap: 6px;
+  margin: 8px 0 14px;
+  padding: 9px 10px;
+  border: 2px solid #8a6330;
+  background: #fff9e8;
+}
+
+.strength-bonus-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  color: #5f4a2c;
+  font-size: 12px;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.strength-bonus-row strong {
+  color: #16723a;
+  font-size: 14px;
 }
 </style>

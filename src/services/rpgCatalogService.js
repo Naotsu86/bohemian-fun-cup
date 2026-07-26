@@ -21,6 +21,7 @@ export async function saveTitle(row) {
     p_req_kraft: Number(row.req_kraft || 0),
     p_req_technik: Number(row.req_technik || 0),
     p_req_ehrgeiz: Number(row.req_ehrgeiz || 0),
+    p_req_team_b_games: Number(row.req_team_b_games || 0),
     p_sort_order: Number(row.sort_order || 100),
     p_active: row.active !== false
   })
@@ -43,6 +44,7 @@ export async function saveSpecial(row) {
     p_req_kraft: Number(row.req_kraft || 0),
     p_req_technik: Number(row.req_technik || 0),
     p_req_ehrgeiz: Number(row.req_ehrgeiz || 0),
+    p_req_team_b_games: Number(row.req_team_b_games || 0),
     p_sort_order: Number(row.sort_order || 100),
     p_active: row.active !== false
   })

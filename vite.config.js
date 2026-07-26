@@ -2,7 +2,7 @@ import { defineConfig } from 'vite'
 import vue from '@vitejs/plugin-vue'
 import { VitePWA } from 'vite-plugin-pwa'
 
-const appVersion = '6.0.1-v1-test'
+const appVersion = '6.0.1'
 const basePath = '/bohemian-fun-cup/'
 
 export default defineConfig({

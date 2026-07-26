@@ -5,35 +5,55 @@
     </div>
 
     <div class="stat-content">
-      <div class="stat-name">{{ label }}</div>
+      <div class="stat-head">
+        <div class="stat-name">{{ label }}</div>
+        <div class="stat-level">LV {{ statLevel }}</div>
+      </div>
 
       <div class="stat-control">
         <button
           class="pixel-step-btn"
           type="button"
-          :disabled="!canRemove"
-          @click="$emit('remove')"
+          :disabled="pending <= 0"
+          @click="changePending(-1)"
         >
           −
         </button>
 
-        <div class="stat-value-box">
-          <span class="stat-total">{{ total }}</span>
-          <span v-if="pending" class="stat-pending">+{{ pending }}</span>
+        <div class="stat-input-wrap">
+          <label>PUNKTE HINZUFÜGEN</label>
+          <input
+            class="stat-input"
+            type="text"
+            inputmode="numeric"
+            pattern="[0-9]*"
+            :value="pending"
+            @input="onInput"
+            @focus="$event.target.select()"
+          >
         </div>
 
         <button
           class="pixel-step-btn"
           type="button"
-          :disabled="!canAdd"
-          @click="$emit('add')"
+          :disabled="pending >= maxPending"
+          @click="changePending(1)"
         >
           +
         </button>
       </div>
 
+      <div class="stat-summary">
+        <span>Gesamt: <strong>{{ total }}</strong></span>
+        <span>Nächstes Level: <strong>{{ nextLevelAt }}</strong></span>
+      </div>
+
       <div class="pixel-progress">
-        <div class="pixel-progress-fill" :style="{ width: percent + '%' }"></div>
+        <div class="pixel-progress-fill" :style="{ width: levelPercent + '%' }"></div>
+      </div>
+
+      <div class="level-progress-text">
+        {{ pointsInLevel }} / 100 Punkte in LV {{ statLevel }}
       </div>
     </div>
   </div>
@@ -48,16 +68,59 @@ const props = defineProps({
   color: { type: String, default: 'green' },
   value: { type: Number, default: 0 },
   pending: { type: Number, default: 0 },
-  canAdd: { type: Boolean, default: false },
-  canRemove: { type: Boolean, default: false }
+  maxPending: { type: Number, default: 0 }
 })
 
-defineEmits(['add', 'remove'])
+const emit = defineEmits(['update:pending'])
 
 const base = import.meta.env.BASE_URL
 const iconSrc = computed(() => `${base}stat-icons/${props.icon}.png`)
-const total = computed(() => Number(props.value || 0) + Number(props.pending || 0))
-const percent = computed(() => Math.max(0, Math.min(100, total.value)))
+
+const total = computed(() =>
+  Math.max(0, Number(props.value || 0) + Number(props.pending || 0))
+)
+
+const statLevel = computed(() =>
+  Math.floor(total.value / 100) + 1
+)
+
+const pointsInLevel = computed(() =>
+  total.value % 100
+)
+
+const levelPercent = computed(() =>
+  Math.max(0, Math.min(100, pointsInLevel.value))
+)
+
+const nextLevelAt = computed(() =>
+  statLevel.value * 100
+)
+
+function clampPending(value) {
+  const number = Math.floor(Number(value || 0))
+
+  if (!Number.isFinite(number)) return 0
+
+  return Math.max(
+    0,
+    Math.min(number, Number(props.maxPending || 0))
+  )
+}
+
+function onInput(event) {
+  const digits = String(event.target.value || '').replace(/\D/g, '')
+  const nextValue = clampPending(digits === '' ? 0 : digits)
+
+  event.target.value = String(nextValue)
+  emit('update:pending', nextValue)
+}
+
+function changePending(change) {
+  emit(
+    'update:pending',
+    clampPending(Number(props.pending || 0) + change)
+  )
+}
 </script>
 
 <style scoped>
@@ -97,25 +160,39 @@ const percent = computed(() => Math.max(0, Math.min(100, total.value)))
   gap:7px;
 }
 
-.stat-name{
+.stat-head{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:8px;
+}
+
+.stat-name,
+.stat-level{
   font-family:var(--font-pixel, 'Silkscreen', monospace);
   letter-spacing:2px;
   text-transform:uppercase;
-  text-align:center;
   color:#7c2d12;
   font-size:13px;
   font-weight:900;
 }
 
+.stat-level{
+  border:2px solid #8a6330;
+  background:#fff4d2;
+  padding:3px 6px;
+  white-space:nowrap;
+}
+
 .stat-control{
   display:grid;
-  grid-template-columns:42px 1fr 42px;
+  grid-template-columns:42px minmax(120px, 1fr) 42px;
   gap:8px;
-  align-items:center;
+  align-items:end;
 }
 
 .pixel-step-btn{
-  height:36px;
+  height:42px;
   border:3px solid #8a6330;
   background:#fffdf6;
   color:#b91c1c;
@@ -133,25 +210,49 @@ const percent = computed(() => Math.max(0, Math.min(100, total.value)))
   box-shadow:none;
 }
 
-.stat-value-box{
-  min-height:36px;
+.stat-input-wrap{
+  min-width:0;
+}
+
+.stat-input-wrap label{
+  display:block;
+  margin-bottom:3px;
+  color:#5f6f86;
+  font-size:9px;
+  font-weight:900;
+  text-align:center;
+}
+
+.stat-input{
+  width:100%;
+  height:42px;
   border:3px solid #b99b69;
   background:#fffdf6;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  gap:6px;
-  font-weight:950;
   box-sizing:border-box;
+  text-align:center;
+  font-family:var(--font-pixel, 'Silkscreen', monospace);
+  font-size:20px;
+  font-weight:950;
+  appearance:textfield;
 }
 
-.stat-total{
-  font-size:24px;
+.stat-input::-webkit-outer-spin-button,
+.stat-input::-webkit-inner-spin-button{
+  appearance:none;
+  margin:0;
 }
 
-.stat-pending{
-  color:#15803d;
-  font-size:13px;
+.stat-summary{
+  display:flex;
+  justify-content:space-between;
+  gap:10px;
+  flex-wrap:wrap;
+  color:#5f6f86;
+  font-size:11px;
+}
+
+.stat-summary strong{
+  color:#2b2115;
 }
 
 .pixel-progress{
@@ -166,7 +267,16 @@ const percent = computed(() => Math.max(0, Math.min(100, total.value)))
 
 .pixel-progress-fill{
   height:100%;
-  box-shadow:inset 0 3px 0 rgba(255,255,255,.45), inset 0 -4px 0 rgba(0,0,0,.18);
+  box-shadow:
+    inset 0 3px 0 rgba(255,255,255,.45),
+    inset 0 -4px 0 rgba(0,0,0,.18);
+}
+
+.level-progress-text{
+  color:#5f6f86;
+  font-size:10px;
+  font-weight:800;
+  text-align:right;
 }
 
 .bar-red .pixel-progress-fill{
@@ -202,6 +312,22 @@ const percent = computed(() => Math.max(0, Math.min(100, total.value)))
   .stat-icon{
     width:46px;
     height:46px;
+  }
+
+  .stat-head{
+    align-items:flex-start;
+  }
+
+  .stat-name{
+    font-size:11px;
+  }
+
+  .stat-level{
+    font-size:10px;
+  }
+
+  .stat-control{
+    grid-template-columns:38px minmax(90px, 1fr) 38px;
   }
 }
 </style>

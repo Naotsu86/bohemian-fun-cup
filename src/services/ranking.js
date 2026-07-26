@@ -11,79 +11,121 @@ export function getOpenMatches(matches) {
   return matches.filter(match => !isFinished(match))
 }
 
-export function buildRanking(players, matches) {
-  const rows = Object.fromEntries(
-    players.map(player => [
-      player.id,
-      {
-        id: player.id,
-        name: player.name,
-        active: player.active !== false,
-        points: 0,
-        games: 0,
-        wins: 0,
-        diff: 0,
-        avg: 0,
-        pause_points: 0,
-        body_color: player.body_color,
-        belly_color: player.belly_color,
-        head_item: player.head_item,
-        shorts_item: player.shorts_item,
-        accessory_item: player.accessory_item
-      }
-    ])
+function rankingSort(a, b) {
+  return (
+    b.points - a.points ||
+    b.wins - a.wins ||
+    b.diff - a.diff ||
+    a.name.localeCompare(b.name)
+  )
+}
+
+function winRate(wins, games) {
+  if (!games) return 0
+  return Number(((wins / games) * 100).toFixed(1))
+}
+
+export function buildRanking(players) {
+  const rows = players.map(player => {
+    const points = Number(player.score_total || 0)
+    const games = Number(player.score_games || 0)
+    const wins = Number(player.score_wins || 0)
+    const diff = Number(player.score_diff || 0)
+
+    return {
+      id: player.id,
+      name: player.name,
+      active: player.active !== false,
+      points,
+      games,
+      wins,
+      diff,
+      win_rate: winRate(wins, games),
+
+      previous_points: Number(player.previous_score_total || 0),
+      previous_games: Number(player.previous_score_games || 0),
+      previous_wins: Number(player.previous_score_wins || 0),
+      previous_diff: Number(player.previous_score_diff || 0),
+      has_rank_history: player.has_rank_history === true,
+
+      rank_change: 0,
+      previous_rank: null,
+      current_rank: null,
+
+      pause_points: Number(player.score_pause_points || 0),
+      absence_points: Number(player.score_absence_points || 0),
+
+      body_color: player.body_color,
+      belly_color: player.belly_color,
+      head_item: player.head_item,
+      top_item: player.top_item,
+      bottom_item: player.bottom_item,
+      shorts_item: player.shorts_item,
+      accessory_item: player.accessory_item,
+
+      selected_title_id: player.selected_title_id,
+      selected_title_name: player.selected_title_name,
+      selected_title_description: player.selected_title_description,
+
+      selected_special_attack_id: player.selected_special_attack_id,
+      selected_special_attack_name: player.selected_special_attack_name,
+      selected_special_attack_description: player.selected_special_attack_description,
+
+      xp_total: Number(player.xp_total || points),
+      calculated_level: Number(player.calculated_level || 1),
+      current_level_xp: Number(player.current_level_xp || 0),
+      next_level_xp: Number(player.next_level_xp || 25),
+
+      stat_teamgeist: Number(player.stat_teamgeist || 0),
+      stat_geschwindigkeit: Number(player.stat_geschwindigkeit || 0),
+      stat_kraft: Number(player.stat_kraft || 0),
+      stat_technik: Number(player.stat_technik || 0),
+      stat_ehrgeiz: Number(player.stat_ehrgeiz || 0)
+    }
+  })
+  const maxGames = rows.reduce(
+  (maximum, row) => Math.max(maximum, row.games),
+  0
+)
+
+rows.forEach(row => {
+  row.average_points = maxGames
+    ? Number((row.points / maxGames).toFixed(1))
+    : 0
+})
+
+  const currentRows = [...rows].sort(rankingSort)
+
+  const previousRows = rows
+    .map(row => ({
+      id: row.id,
+      name: row.name,
+      points: row.previous_points,
+      games: row.previous_games,
+      wins: row.previous_wins,
+      diff: row.previous_diff
+    }))
+    .sort(rankingSort)
+
+  const previousRankById = Object.fromEntries(
+    previousRows.map((row, index) => [row.id, index + 1])
   )
 
-  for (const match of matches) {
-    if (!isFinished(match)) continue
+  return currentRows.map((row, index) => {
+    const currentRank = index + 1
+    const previousRank = previousRankById[row.id] || currentRank
 
-    const scoreA = Number(match.score_a)
-    const scoreB = Number(match.score_b)
-    const loserPoints = Math.min(scoreA, scoreB)
-
-    for (const id of match.team_a || []) {
-      if (!rows[id]) continue
-
-      rows[id].points += scoreA
-      rows[id].games += 1
-      rows[id].diff += scoreA - scoreB
-
-      if (scoreA > scoreB) rows[id].wins += 1
-    }
-
-    for (const id of match.team_b || []) {
-      if (!rows[id]) continue
-
-      rows[id].points += scoreB
-      rows[id].games += 1
-      rows[id].diff += scoreB - scoreA
-
-      if (scoreB > scoreA) rows[id].wins += 1
-    }
-
-    // Pausierende Spieler erhalten die Punkte des Verliererteams.
-    // Der Einsatz zählt nicht als gespieltes Spiel, damit sie beim
-    // nächsten Generatorlauf bevorzugt aufgestellt werden.
-    for (const id of match.bench_players || []) {
-      if (!rows[id]) continue
-
-      rows[id].points += loserPoints
-      rows[id].pause_points += loserPoints
-    }
-  }
-
-  return Object.values(rows)
-    .map(row => ({
+    return {
       ...row,
-      avg: row.games ? Number((row.points / row.games).toFixed(2)) : 0
-    }))
-    .sort(
-      (a, b) =>
-        b.points - a.points ||
-        b.wins - a.wins ||
-        b.diff - a.diff ||
-        a.name.localeCompare(b.name)
-    )
+      current_rank: currentRank,
+      previous_rank: previousRank,
+
+      // Positiv = nach oben gestiegen, negativ = Plätze verloren.
+      rank_change: row.has_rank_history
+        ? previousRank - currentRank
+        : 0
+    }
+  })
 }
 
 export function gamesPlayed(id, matches) {

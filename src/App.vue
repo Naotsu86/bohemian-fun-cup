@@ -41,6 +41,7 @@
       :user-email="userEmail"
       :players="players"
       :matches="matches"
+      :tiebreak-groups="tiebreakGroups"
       :rules="rules"
       :message="message"
       :match-number="matchNumber"
@@ -53,6 +54,8 @@
       @update-player="handleUpdatePlayer"
       @delete-player="handleDeletePlayer"
       @create-match="handleCreateMatch"
+      @create-tiebreak-match="handleCreateTiebreakMatch"
+      @create-tiebreak-round="handleCreateTiebreakRound"
       @delete-match="handleDeleteMatch"
       @score="handleScore"
       @update-rules="handleRules"
@@ -74,7 +77,12 @@ import Profile from './views/Profile.vue'
 import { getSession, loginWithPassword, logout } from './services/auth'
 import { approvePlayer } from './services/adminApprovalService'
 import { buildRanking, getOpenMatches } from './services/ranking'
-import { createNextMatch } from './services/generator'
+import {
+  createNextMatch,
+  createRoundRobinTiebreakMatches,
+  createTiebreakMatch
+} from './services/generator'
+
 import {
   addPlayer,
   deleteMatch,
@@ -101,10 +109,26 @@ let channel = null
 let timer = null
 
 const userEmail = computed(() => session.value?.user?.email || '')
-const ranking = computed(() => buildRanking(players.value, matches.value))
-const openMatches = computed(() => getOpenMatches(matches.value))
-const rules = computed(() => settings.value.rules || 'Noch keine Regeln eingetragen.')
-const statusText = computed(() => loading.value ? 'lädt...' : 'live')
+
+const ranking = computed(() =>
+  buildRanking(players.value, matches.value)
+)
+
+const openMatches = computed(() =>
+  getOpenMatches(matches.value)
+)
+
+const tiebreakGroups = computed(() =>
+  buildTiebreakGroups(ranking.value)
+)
+
+const rules = computed(() =>
+  settings.value.rules || 'Noch keine Regeln eingetragen.'
+)
+
+const statusText = computed(() =>
+  loading.value ? 'lädt...' : 'live'
+)
 
 onMounted(async () => {
   await loadSession()
@@ -127,6 +151,7 @@ onUnmounted(() => {
 
 async function run(fn) {
   error.value = ''
+
   try {
     await fn()
   } catch (e) {
@@ -170,10 +195,11 @@ async function loadData() {
   loading.value = true
 
   try {
-    const d = await loadAll()
-    players.value = d.players
-    matches.value = d.matches
-    settings.value = d.settings
+    const data = await loadAll()
+
+    players.value = data.players
+    matches.value = data.matches
+    settings.value = data.settings
   } catch (e) {
     error.value = e.message || 'Daten konnten nicht geladen werden.'
   } finally {
@@ -184,9 +210,21 @@ async function loadData() {
 function subscribe() {
   channel = supabase
     .channel('bfc-live')
-    .on('postgres_changes', { event: '*', schema: 'public', table: 'players' }, loadData)
-    .on('postgres_changes', { event: '*', schema: 'public', table: 'matches' }, loadData)
-    .on('postgres_changes', { event: '*', schema: 'public', table: 'settings' }, loadData)
+    .on(
+      'postgres_changes',
+      { event: '*', schema: 'public', table: 'players' },
+      loadData
+    )
+    .on(
+      'postgres_changes',
+      { event: '*', schema: 'public', table: 'matches' },
+      loadData
+    )
+    .on(
+      'postgres_changes',
+      { event: '*', schema: 'public', table: 'settings' },
+      loadData
+    )
     .subscribe()
 }
 
@@ -201,6 +239,7 @@ async function handleLogin({ email, password }) {
 async function handleLogout() {
   await run(async () => {
     await logout()
+
     session.value = null
     isAdmin.value = false
     tab.value = 'overview'
@@ -208,11 +247,11 @@ async function handleLogout() {
 }
 
 function nameOf(id) {
-  return players.value.find(p => p.id === id)?.name || '?'
+  return players.value.find(player => player.id === id)?.name || '?'
 }
 
-function matchNumber(m) {
-  return matches.value.findIndex(x => x.id === m.id) + 1
+function matchNumber(match) {
+  return matches.value.findIndex(item => item.id === match.id) + 1
 }
 
 async function handleApprovePlayer(playerId) {
@@ -223,9 +262,9 @@ async function handleApprovePlayer(playerId) {
   })
 }
 
-async function handleAddPlayer(p) {
+async function handleAddPlayer(player) {
   await run(async () => {
-    await addPlayer(p)
+    await addPlayer(player)
     await loadData()
   })
 }
@@ -238,7 +277,13 @@ async function handleUpdatePlayer(id, patch) {
 }
 
 async function handleDeletePlayer(id) {
-  if (!confirm('Besser ist meistens: Spieler auf inaktiv setzen. Trotzdem löschen?')) return
+  if (
+    !confirm(
+      'Besser ist meistens: Spieler auf inaktiv setzen. Trotzdem löschen?'
+    )
+  ) {
+    return
+  }
 
   await run(async () => {
     await deletePlayer(id)
@@ -248,9 +293,69 @@ async function handleDeletePlayer(id) {
 
 async function handleCreateMatch(mode) {
   await run(async () => {
-    const m = createNextMatch(players.value, matches.value, mode)
-    await insertMatch(m)
+    const match = createNextMatch(
+      players.value,
+      matches.value,
+      mode
+    )
+
+    await insertMatch(match)
+
     message.value = 'Nächstes Spiel wurde erzeugt.'
+    await loadData()
+  })
+}
+
+async function handleCreateTiebreakMatch({
+  playerAId,
+  playerBId
+}) {
+  await run(async () => {
+    const generatedMatch = createTiebreakMatch(
+      players.value,
+      matches.value,
+      playerAId,
+      playerBId
+    )
+
+    const match = {
+      ...generatedMatch,
+      tiebreak_player_a_id: playerAId,
+      tiebreak_player_b_id: playerBId
+    }
+
+    console.log(
+      'TIEBREAK MATCH VOR INSERT:',
+      match
+    )
+
+    await insertMatch(match)
+
+    message.value =
+      'Entscheidungsspiel wurde erzeugt.'
+
+    await loadData()
+  })
+}
+
+async function handleCreateTiebreakRound({
+  playerIds
+}) {
+  await run(async () => {
+    const roundMatches =
+      createRoundRobinTiebreakMatches(
+        players.value,
+        matches.value,
+        playerIds
+      )
+
+    for (const match of roundMatches) {
+      await insertMatch(match)
+    }
+
+    message.value =
+      `${roundMatches.length} Entscheidungsspiele wurden erzeugt.`
+
     await loadData()
   })
 }
@@ -259,6 +364,7 @@ async function handleDeleteMatch(id) {
   await run(async () => {
     await deleteMatch(id)
     await loadData()
+
     await updateForms(players.value, matches.value)
     await loadData()
   })
@@ -272,7 +378,9 @@ async function handleScore(payload) {
         score_b: payload.score_b
       })
     } else {
-      await updateMatch(payload.id, { [payload.side]: payload.value })
+      await updateMatch(payload.id, {
+        [payload.side]: payload.value
+      })
     }
 
     await loadData()
@@ -281,10 +389,96 @@ async function handleScore(payload) {
   })
 }
 
-async function handleRules(rules) {
+async function handleRules(updatedRules) {
   await run(async () => {
-    await updateSettings({ ...settings.value, rules })
+    await updateSettings({
+      ...settings.value,
+      rules: updatedRules
+    })
+
     await loadData()
   })
+}
+
+function buildTiebreakGroups(rankingRows) {
+  const rows = Array.isArray(rankingRows)
+    ? rankingRows
+    : []
+
+  const groupsByPoints = new Map()
+
+  rows.forEach((row, index) => {
+    const playerId = row.id || row.player_id
+
+    if (!playerId) {
+      return
+    }
+
+    const points = getRankingPoints(row)
+    const key = Number(points).toFixed(2)
+
+    if (!groupsByPoints.has(key)) {
+      groupsByPoints.set(key, [])
+    }
+
+    groupsByPoints.get(key).push({
+      id: playerId,
+      name:
+        row.name ||
+        row.player_name ||
+        nameOf(playerId),
+      points,
+      rankingIndex: index
+    })
+  })
+
+  return [...groupsByPoints.entries()]
+    .map(([key, tiedPlayers]) => {
+      if (tiedPlayers.length < 2) {
+        return null
+      }
+
+      const sortedPlayers = [...tiedPlayers].sort(
+        (a, b) => a.rankingIndex - b.rankingIndex
+      )
+
+      const place =
+        Math.min(
+          ...sortedPlayers.map(player => player.rankingIndex)
+        ) + 1
+
+      return {
+        key: `${place}:${key}`,
+        place,
+        endPlace: place + sortedPlayers.length - 1,
+        points: sortedPlayers[0].points,
+        players: sortedPlayers.map(player => ({
+          id: player.id,
+          name: player.name
+        }))
+      }
+    })
+    .filter(Boolean)
+    .sort((a, b) => a.place - b.place)
+}
+
+function getRankingPoints(row) {
+  const candidates = [
+    row.score_total,
+    row.total_points,
+    row.points,
+    row.score,
+    row.total
+  ]
+
+  for (const value of candidates) {
+    const number = Number(value)
+
+    if (Number.isFinite(number)) {
+      return number
+    }
+  }
+
+  return 0
 }
 </script>

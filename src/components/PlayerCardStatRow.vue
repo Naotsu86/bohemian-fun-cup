@@ -1,16 +1,23 @@
 <template>
   <div class="card-stat-row" :class="'bar-' + color">
-    <div class="card-stat-head">
-      <div class="card-stat-title">
-        <img class="card-stat-icon" :src="iconSrc" alt="" />
-        <span>{{ label }}</span>
-      </div>
-      <strong>{{ value }}</strong>
-    </div>
+<div class="card-stat-head">
+  <div class="card-stat-title">
+    <img class="card-stat-icon" :src="iconSrc" alt="" />
+    <span>{{ label }}</span>
+  </div>
+
+  <div class="card-stat-values">
+    <strong>{{ value }}</strong>
+    <span>LV {{ statLevel }}</span>
+  </div>
+</div>
 
     <div class="pixel-progress">
       <div class="pixel-progress-fill" :style="{ width: percent + '%' }"></div>
     </div>
+    <div class="card-stat-progress-text">
+  {{ pointsInLevel }} / 100 Punkte in LV {{ statLevel }}
+</div>
   </div>
 </template>
 
@@ -26,7 +33,17 @@ const props = defineProps({
 
 const base = import.meta.env.BASE_URL
 const iconSrc = computed(() => `${base}stat-icons/${props.icon}.png`)
-const percent = computed(() => Math.max(0, Math.min(100, Number(props.value || 0))))
+const statLevel = computed(() =>
+  Math.floor(Math.max(0, Number(props.value || 0)) / 100) + 1
+)
+
+const pointsInLevel = computed(() =>
+  Math.max(0, Number(props.value || 0)) % 100
+)
+
+const percent = computed(() =>
+  Math.max(0, Math.min(100, pointsInLevel.value))
+)
 </script>
 
 <style scoped>
@@ -61,7 +78,25 @@ const percent = computed(() => Math.max(0, Math.min(100, Number(props.value || 0
   object-fit:contain;
   image-rendering:pixelated;
 }
+.card-stat-values{
+  display:flex;
+  align-items:center;
+  gap:10px;
+}
 
+.card-stat-values span{
+  border:2px solid #8a6330;
+  background:#fff4d2;
+  padding:3px 6px;
+  white-space:nowrap;
+}
+
+.card-stat-progress-text{
+  margin-top:4px;
+  text-align:right;
+  font-size:10px;
+  color:#5f6f86;
+}
 .pixel-progress{
   height:20px;
   border:3px solid #2b2115;

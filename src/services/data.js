@@ -3,37 +3,77 @@ import { calculateForm } from './generator'
 
 async function loadPlayerCards() {
   const rpc = await supabase.rpc('get_player_cards')
-
   if (!rpc.error) return rpc.data || []
 
-  console.warn('get_player_cards konnte nicht geladen werden:', rpc.error.message)
-
   const view = await supabase.from('player_card_view').select('*')
-
-  if (view.error) {
-    console.warn('player_card_view konnte nicht geladen werden:', view.error.message)
-    return []
-  }
-
+  if (view.error) return []
   return view.data || []
 }
 
+async function loadScoreTotals() {
+  const { data, error } = await supabase.rpc('get_player_score_totals')
+  if (error) throw error
+  return data || []
+}
+
 export async function loadAll() {
-  const [p, m, s, cards] = await Promise.all([
-    supabase.from('players').select('*').order('created_at', { ascending: true }),
-    supabase.from('matches').select('*').order('created_at', { ascending: true }),
-    supabase.from('settings').select('*').eq('id', 'main').maybeSingle(),
-    loadPlayerCards()
-  ])
+const [p, m, s, cards, totals, titles] = await Promise.all([
+  supabase.from('players').select('*').order('created_at', { ascending: true }),
+  supabase.from('matches').select('*').order('created_at', { ascending: true }),
+  supabase.from('settings').select('*').eq('id', 'main').maybeSingle(),
+  loadPlayerCards(),
+  loadScoreTotals(),
+
+  supabase
+    .from('player_titles')
+    .select(`
+      id,
+      name,
+      strength_modifier,
+      speed_modifier,
+      technique_modifier,
+      ambition_modifier,
+      team_modifier,
+      power_modifier,
+      effect_code,
+      effect_value,
+      effect_target,
+      effect_scope
+    `)
+])
 
   if (p.error) throw p.error
   if (m.error) throw m.error
   if (s.error) throw s.error
+  if (titles.error) throw titles.error
 
-  const cardByPlayerId = Object.fromEntries((cards || []).map(row => [row.player_id, row]))
+  const cardByPlayerId = Object.fromEntries(
+    (cards || []).map(row => [row.player_id, row])
+  )
+
+  const totalsByPlayerId = Object.fromEntries(
+    (totals || []).map(row => [row.player_id, row])
+  )
+
+  const titleById = Object.fromEntries(
+  (titles.data || []).map(title => [String(title.id), title])
+  )
+
+  const titleByName = Object.fromEntries(
+  (titles.data || []).map(title => [title.name, title])
+  )
+
+  const calculatedForm = calculateForm(
+  p.data || [],
+  m.data || []
+  )
 
   const players = (p.data || []).map(player => {
     const card = cardByPlayerId[player.id] || {}
+    const score = totalsByPlayerId[player.id] || {}
+    const selectedTitle =
+      titleById[String(card.selected_title_id)] ||
+      titleByName[card.selected_title_name] || {}
 
     return {
       ...player,
@@ -45,9 +85,23 @@ export async function loadAll() {
       active: player.active,
       approved: player.approved,
       strength: player.strength,
-      form: player.form,
+      form: Number(calculatedForm[player.id] || 0),
 
-      xp_total: Number(card.xp_total || 0),
+    
+      score_total: Number(score.total_points || 0),
+      score_games: Number(score.games || 0),
+      score_wins: Number(score.wins || 0),
+      score_diff: Number(score.point_diff || 0),
+      score_pause_points: Number(score.pause_points || 0),
+      score_absence_points: Number(score.absence_points || 0),
+
+      previous_score_total: Number(score.previous_total_points || 0),
+      previous_score_games: Number(score.previous_games || 0),
+      previous_score_wins: Number(score.previous_wins || 0),
+      previous_score_diff: Number(score.previous_point_diff || 0),
+      has_rank_history: score.has_rank_history === true,
+
+      xp_total: Number(card.xp_total || score.total_points || 0),
       calculated_level: Number(card.calculated_level || 1),
       current_level_xp: Number(card.current_level_xp || 0),
       next_level_xp: Number(card.next_level_xp || 25),
@@ -65,6 +119,42 @@ export async function loadAll() {
       selected_title_id: card.selected_title_id || null,
       selected_title_name: card.selected_title_name || null,
       selected_title_description: card.selected_title_description || null,
+      title_strength_modifier: Number(
+  selectedTitle.strength_modifier || 0
+),
+
+title_speed_modifier: Number(
+  selectedTitle.speed_modifier || 0
+),
+
+title_technique_modifier: Number(
+  selectedTitle.technique_modifier || 0
+),
+
+title_ambition_modifier: Number(
+  selectedTitle.ambition_modifier || 0
+),
+
+title_team_modifier: Number(
+  selectedTitle.team_modifier || 0
+),
+
+title_power_modifier: Number(
+  selectedTitle.power_modifier || 0
+),
+
+title_effect_code:
+  selectedTitle.effect_code || null,
+
+title_effect_value: Number(
+  selectedTitle.effect_value || 0
+),
+
+title_effect_target:
+  selectedTitle.effect_target || 'self',
+
+title_effect_scope:
+  selectedTitle.effect_scope || 'permanent',
 
       selected_special_attack_id: card.selected_special_attack_id || null,
       selected_special_attack_name: card.selected_special_attack_name || null,
@@ -79,7 +169,11 @@ export async function loadAll() {
     }
   })
 
-  return { players, matches: m.data || [], settings: s.data?.value || {} }
+  return {
+    players,
+    matches: m.data || [],
+    settings: s.data?.value || {}
+  }
 }
 
 export async function addPlayer(row) {
@@ -108,12 +202,44 @@ export async function insertMatch(row) {
 }
 
 export async function updateMatch(id, patch) {
+  const changesScore =
+    Object.prototype.hasOwnProperty.call(patch, 'score_a') ||
+    Object.prototype.hasOwnProperty.call(patch, 'score_b')
+
+  if (changesScore) {
+    const { data: current, error: readError } = await supabase
+      .from('matches')
+      .select('score_a, score_b')
+      .eq('id', id)
+      .single()
+
+    if (readError) throw readError
+
+    const scoreA = Object.prototype.hasOwnProperty.call(patch, 'score_a')
+      ? patch.score_a
+      : current.score_a
+    const scoreB = Object.prototype.hasOwnProperty.call(patch, 'score_b')
+      ? patch.score_b
+      : current.score_b
+
+    const { error } = await supabase.rpc('save_match_score', {
+      target_match_id: id,
+      new_score_a: Number(scoreA),
+      new_score_b: Number(scoreB)
+    })
+
+    if (error) throw error
+    return
+  }
+
   const { error } = await supabase.from('matches').update(patch).eq('id', id)
   if (error) throw error
 }
 
 export async function deleteMatch(id) {
-  const { error } = await supabase.from('matches').delete().eq('id', id)
+  const { error } = await supabase.rpc('delete_match_with_points', {
+    target_match_id: id
+  })
   if (error) throw error
 }
 
@@ -124,11 +250,7 @@ export async function updateSettings(value) {
 
 export async function updateForms(players, matches) {
   const form = calculateForm(players, matches)
-
-  await Promise.all(players.map(p =>
-    supabase
-      .from('players')
-      .update({ form: form[p.id] || 0 })
-      .eq('id', p.id)
+  await Promise.all(players.map(player =>
+    supabase.from('players').update({ form: form[player.id] || 0 }).eq('id', player.id)
   ))
 }
