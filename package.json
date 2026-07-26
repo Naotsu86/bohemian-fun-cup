@@ -15,5 +15,7 @@
     "vite-plugin-pwa": "^0.21.1",
     "vue": "^3.5.13"
   },
-  "devDependencies": {}
+  "devDependencies": {
+    "supabase": "^2.109.1"
+  }
 }

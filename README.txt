@@ -1,9 +1,15 @@
-Build-Fix:
+DEV Projekt
 
-Die vorherige RankingTable.vue war keine gültige Vue-Komponente,
-weil sie nur einen HTML-Ausschnitt enthielt.
+Supabase:
+bohemian-fun-cup-dev
 
-Diese Datei ersetzt:
-src/components/RankingTable.vue
+Admin:
+boehm.alex@gmx.de
 
-Danach sollte der Build wieder laufen.
+Testspieler:
+lexab@gmx.de
+
+Start:
+
+npm install
+npm run dev
